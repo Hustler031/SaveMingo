@@ -156,3 +156,66 @@ Separate Node service:
 
 This boundary is mandatory because Cloudflare Workers do not provide a normal spawned-process FFmpeg runtime.
 
+## SM-014 production architecture
+
+The production application remains one vinext/Next.js Worker with isolated platform
+adapters. Reddit muxing is the only feature that crosses into a Container.
+
+```text
+Browser
+  ↓
+savemingo Worker
+  ├─ pages / SEO / analytics
+  ├─ POST /api/v1/resolve
+  │    ├─ Instagram adapter → Instagram resolver
+  │    ├─ X adapter         → X resolver
+  │    ├─ Pinterest adapter → Pinterest resolver
+  │    ├─ Reddit adapter    → Reddit resolver
+  │    └─ TikTok adapter    → TikTok resolver
+  ├─ GET /api/v1/media
+  └─ POST /api/v1/reddit/mux
+            ↓ private Cloudflare Service Binding
+      savemingo-reddit-mux Worker
+            ↓
+      RedditMuxContainer
+        ├─ v.redd.it allow-list only
+        ├─ temporary video/audio files
+        ├─ FFmpeg stream-copy mux
+        ├─ MP4 response
+        └─ temporary-file cleanup
+```
+
+### Mux isolation invariants
+
+- The main Worker does not start or import FFmpeg.
+- Only `/api/v1/reddit/mux` and `/api/health/reddit-mux` use the
+  `REDDIT_MUX` Service Binding.
+- The mux Worker is not published on `workers.dev`; it is intended to be
+  reachable only by Service Binding.
+- The container accepts only HTTPS `v.redd.it` video/manifest/audio URLs and
+  independently revalidates redirects.
+- Cloudflare production does not require a shared mux bearer secret because the
+  downstream Worker is private to the account. The existing bearer-token HTTP
+  mode remains only for local/non-Cloudflare fallback testing.
+- A mux outage returns `SM-RD-107` and leaves Reddit video-only download
+  available.
+- Instagram, X, Pinterest, TikTok, normal Reddit resolve/media delivery, and
+  site rendering do not call the mux service and must stay healthy if it is
+  stopped.
+
+### Container launch profile
+
+Initial launch profile:
+
+- instance type: `basic` (1 GiB memory, 1/4 vCPU, 4 GB ephemeral disk);
+- fixed pool: 2 stateless instances;
+- idle sleep: 30 seconds;
+- per-input cap: 150 MiB;
+- manifest cap: 1 MiB;
+- upstream fetch timeout: 25 seconds;
+- FFmpeg timeout: 60 seconds;
+- FFmpeg mode: stream copy (`-c copy`), not transcoding.
+
+The 4 GB ephemeral disk is deliberately much larger than the bounded temporary
+video + audio + merged output footprint. No media is intentionally persisted.
+
