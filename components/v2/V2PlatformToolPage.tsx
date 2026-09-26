@@ -35,31 +35,31 @@ type Config = {
 };
 
 const xRelated: Array<[string, string]> = [
-  ["/v2-preview/x-downloader", "X / Twitter Downloader"],
-  ["/v2-preview/twitter-video-downloader", "Twitter Video"],
-  ["/v2-preview/twitter-gif-downloader", "Twitter GIF"],
-  ["/v2-preview/twitter-image-downloader", "Twitter Images"],
+  ["/x-downloader", "X / Twitter Downloader"],
+  ["/twitter-video-downloader", "Twitter Video"],
+  ["/twitter-gif-downloader", "Twitter GIF"],
+  ["/twitter-image-downloader", "Twitter Images"],
 ];
 
 const pinterestRelated: Array<[string, string]> = [
-  ["/v2-preview/pinterest-downloader", "Pinterest Downloader"],
-  ["/v2-preview/pinterest-video-downloader", "Pinterest Video"],
-  ["/v2-preview/pinterest-image-downloader", "Pinterest Images"],
-  ["/v2-preview/pinterest-gif-downloader", "Pinterest GIF"],
+  ["/pinterest-downloader", "Pinterest Downloader"],
+  ["/pinterest-video-downloader", "Pinterest Video"],
+  ["/pinterest-image-downloader", "Pinterest Images"],
+  ["/pinterest-gif-downloader", "Pinterest GIF"],
 ];
 
 const redditRelated: Array<[string, string]> = [
-  ["/v2-preview/reddit-downloader", "Reddit Downloader"],
-  ["/v2-preview/reddit-video-downloader", "Reddit Video + Sound Check"],
-  ["/v2-preview/reddit-image-downloader", "Reddit Images"],
-  ["/v2-preview/reddit-gif-downloader", "Reddit GIF"],
+  ["/reddit-downloader", "Reddit Downloader"],
+  ["/reddit-video-downloader", "Reddit Video + Sound Check"],
+  ["/reddit-image-downloader", "Reddit Images"],
+  ["/reddit-gif-downloader", "Reddit GIF"],
 ];
 
 const tiktokRelated: Array<[string, string]> = [
-  ["/v2-preview/tiktok-downloader", "TikTok Downloader"],
-  ["/v2-preview/tiktok-video-downloader", "TikTok Video"],
-  ["/v2-preview/tiktok-photo-downloader", "TikTok Photos"],
-  ["/v2-preview/tiktok-slideshow-downloader", "TikTok Slideshow"],
+  ["/tiktok-downloader", "TikTok Downloader"],
+  ["/tiktok-video-downloader", "TikTok Video"],
+  ["/tiktok-photo-downloader", "TikTok Photos"],
+  ["/tiktok-slideshow-downloader", "TikTok Slideshow"],
 ];
 
 const configs: Record<V2PlatformPageKind, Config> = {
