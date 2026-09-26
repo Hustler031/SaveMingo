@@ -2,7 +2,12 @@ import Link from "next/link";
 import { V2Downloader } from "@/components/v2/V2Downloader";
 import { V2SiteShell } from "@/components/v2/V2SiteShell";
 
-export type V2InstagramKind = "all" | "reels" | "photo" | "carousel";
+export type V2InstagramKind =
+  | "all"
+  | "reels"
+  | "video"
+  | "photo"
+  | "carousel";
 
 const configs: Record<
   V2InstagramKind,
@@ -10,6 +15,8 @@ const configs: Record<
     eyebrow: string;
     title: string;
     intro: string;
+    sectionTitle: string;
+    sectionText: string;
     supported: Array<[string, string]>;
     steps: string[];
     faq: Array<[string, string]>;
@@ -19,34 +26,53 @@ const configs: Record<
     eyebrow: "Instagram downloader",
     title: "Download Instagram media",
     intro:
-      "Paste a supported public Instagram link to download Reels, videos, photos, or carousel media. Preview is optional.",
+      "Paste one supported public Instagram link. SaveMingo detects whether it is a Reel, video, photo, or carousel and prepares the available download.",
+    sectionTitle: "Everything you need for Instagram downloads.",
+    sectionText:
+      "Use one box for supported public Instagram links. You do not need to choose the post type before pasting.",
     supported: [
-      ["Reels", "Public Reel videos through the same resolver flow."],
-      ["Videos", "Supported public Instagram video posts."],
-      ["Photos", "Supported public single-photo posts."],
-      ["Carousels", "Multi-item posts with photos, videos, or both."],
+      ["Reels", "Download supported public Reel videos."],
+      ["Videos", "Save supported public Instagram video posts."],
+      ["Photos", "Download supported public single-photo posts."],
+      ["Carousels", "Save available photos and videos from multi-item posts."],
     ],
     steps: [
       "Copy the public Instagram post link.",
       "Paste the link into SaveMingo and press Download.",
-      "Download immediately, or open Preview if you want to inspect the media first.",
+      "Save the available media immediately, or open Preview if you want to inspect it first.",
     ],
     faq: [
-      ["Do I need an Instagram login?", "No. SaveMingo works with supported public links and does not ask for your Instagram password."],
-      ["Can it download private posts?", "No. SaveMingo does not bypass private-account access controls."],
-      ["Is Preview required?", "No. Preview is optional. The download action remains the primary path."],
+      [
+        "Do I need an Instagram login?",
+        "No. SaveMingo works with supported public links and does not ask for your Instagram password.",
+      ],
+      [
+        "Can it download private posts?",
+        "No. SaveMingo does not bypass private-account access controls.",
+      ],
+      [
+        "Do I need to choose Reel, photo, or carousel first?",
+        "No. Paste the supported public Instagram link and SaveMingo determines the post type automatically.",
+      ],
+      [
+        "Is Preview required?",
+        "No. Preview is optional. Download remains the primary action.",
+      ],
     ],
   },
   reels: {
     eyebrow: "Instagram Reels",
     title: "Instagram Reels Downloader",
     intro:
-      "Paste a supported public Reel link and download the available video without turning the page into a full-screen preview.",
+      "Paste a supported public Reel link and download the available video. Preview stays optional.",
+    sectionTitle: "Made for quick Reel downloads.",
+    sectionText:
+      "Copy the Reel link, paste it once, and keep the download action front and center.",
     supported: [
-      ["Public Reels", "Designed for supported public Reel links."],
-      ["Direct download", "Download remains the primary action after resolve."],
-      ["Optional preview", "Open the player only when you want to inspect the Reel."],
-      ["Request IDs", "Failures keep diagnostic codes for easier debugging."],
+      ["Public Reels", "Works with supported publicly accessible Reel links."],
+      ["Direct download", "The available video is presented as the main action."],
+      ["Optional preview", "Open the player only when you want to check the Reel first."],
+      ["Clear errors", "If a Reel cannot be resolved, SaveMingo shows a useful error code and request ID."],
     ],
     steps: [
       "Copy the public Reel link from Instagram.",
@@ -54,42 +80,100 @@ const configs: Record<
       "Save the video, or open Preview first if you want to check it.",
     ],
     faq: [
-      ["Does it require Instagram login?", "No. SaveMingo is designed around supported public Reel URLs."],
-      ["Can I preview the Reel first?", "Yes. Preview is available as a secondary option after the Reel resolves."],
-      ["Why can a Reel fail?", "Instagram can change or restrict public responses. SaveMingo returns an error code and request ID when resolution fails."],
+      [
+        "Does it require an Instagram login?",
+        "No. SaveMingo is designed for supported public Reel URLs.",
+      ],
+      [
+        "Can I preview the Reel first?",
+        "Yes. Preview is available after the Reel resolves, but it is not required.",
+      ],
+      [
+        "Why can a Reel occasionally fail?",
+        "Instagram can change or temporarily restrict public responses. SaveMingo shows an error code and request ID when that happens.",
+      ],
+    ],
+  },
+  video: {
+    eyebrow: "Instagram Videos",
+    title: "Instagram Video Downloader",
+    intro:
+      "Paste a supported public Instagram video-post link and save the available video with the same simple workflow.",
+    sectionTitle: "A simple path from post to video.",
+    sectionText:
+      "No separate setup or category choice is needed. Paste the supported public video-post link and continue.",
+    supported: [
+      ["Public video posts", "Designed for supported public Instagram video-post links."],
+      ["Direct download", "Download is the main action once the media is ready."],
+      ["Optional preview", "Open Preview only when you want to inspect the video."],
+      ["Mobile friendly", "The same flow is designed to stay usable on smaller screens."],
+    ],
+    steps: [
+      "Copy the public Instagram video-post link.",
+      "Paste it into SaveMingo and press Download.",
+      "Save the video immediately, or open Preview first.",
+    ],
+    faq: [
+      [
+        "Is this different from the Reel downloader?",
+        "The page is specific to video posts, but the visible SaveMingo workflow stays the same.",
+      ],
+      [
+        "Do I need to sign in?",
+        "No. SaveMingo does not ask for Instagram login credentials.",
+      ],
+      [
+        "Can I preview the video?",
+        "Yes. Preview is optional after the media resolves.",
+      ],
     ],
   },
   photo: {
     eyebrow: "Instagram Photos",
     title: "Instagram Photo Downloader",
     intro:
-      "Download supported public Instagram photos with a simple copy, paste, and save flow. Preview only when you need it.",
+      "Download supported public Instagram photos with a simple copy, paste, and save flow.",
+    sectionTitle: "Save public Instagram photos without extra steps.",
+    sectionText:
+      "Paste the supported photo-post link, download the image, and use Preview only when you want to inspect it first.",
     supported: [
-      ["Public photos", "Supported single-photo Instagram posts."],
-      ["Source dimensions", "Show real dimensions when the resolver provides them."],
-      ["Optional preview", "Inspect the image without making preview the default path."],
-      ["Same media route", "Download and preview use SaveMingo's restricted media delivery."],
+      ["Public photos", "Works with supported public single-photo Instagram posts."],
+      ["Image details", "Available dimensions are shown when they are provided."],
+      ["Optional preview", "Inspect the image only when you choose to open Preview."],
+      ["No signup", "No SaveMingo account is required for the download flow."],
     ],
     steps: [
       "Copy the public Instagram photo-post link.",
       "Paste it into SaveMingo and press Download.",
-      "Save the image, or open Preview to inspect it first.",
+      "Save the image, or open Preview if you want to inspect it first.",
     ],
     faq: [
-      ["Does SaveMingo edit the image?", "No. SaveMingo aims to deliver the media source that its resolver can obtain."],
-      ["Can it access private accounts?", "No. SaveMingo does not bypass private-account permissions."],
-      ["Is the image permanently stored?", "The current media delivery path streams resolved media rather than intentionally retaining a permanent copy."],
+      [
+        "Does SaveMingo edit the image?",
+        "No. SaveMingo is designed to deliver the available resolved media without applying filters or edits.",
+      ],
+      [
+        "Can it access private accounts?",
+        "No. SaveMingo does not bypass private-account permissions.",
+      ],
+      [
+        "Is Preview required?",
+        "No. The image can be downloaded directly after it resolves.",
+      ],
     ],
   },
   carousel: {
     eyebrow: "Instagram Carousels",
     title: "Instagram Carousel Downloader",
     intro:
-      "Resolve a supported multi-item post once, download all available items from the center, and open Preview only if you want to inspect them individually.",
+      "Paste one supported public carousel link, download all available items together, or open Preview for item-by-item control.",
+    sectionTitle: "One link for the whole carousel.",
+    sectionText:
+      "You do not need to paste every slide separately. SaveMingo can present the available items from the supported public post together.",
     supported: [
-      ["Multiple items", "Resolve several media items from one post URL."],
-      ["Mixed media", "Photo and video items can coexist in one result."],
-      ["Download all", "The multi-item primary action stays centered and obvious."],
+      ["Multiple items", "Handle several available items from one carousel post."],
+      ["Photos and videos", "Supported carousels can contain image and video items."],
+      ["Download all", "Use one primary action for the available carousel items."],
       ["Item preview", "Open Preview for arrows, thumbnails, and individual downloads."],
     ],
     steps: [
@@ -98,9 +182,18 @@ const configs: Record<
       "Use Download All, or open Preview for individual carousel items.",
     ],
     faq: [
-      ["Do I paste every carousel item?", "No. Paste the public carousel post URL once."],
-      ["Can it contain photos and videos?", "Yes. SaveMingo's media model supports mixed image and video results."],
-      ["Is Preview mandatory for a carousel?", "No. Download All is the primary result action. Preview is there only when you want item-level control."],
+      [
+        "Do I need to paste every carousel item?",
+        "No. Paste the supported public carousel post URL once.",
+      ],
+      [
+        "Can a carousel contain photos and videos?",
+        "Yes. Supported carousel results can include both images and videos.",
+      ],
+      [
+        "Is Preview mandatory?",
+        "No. Download All remains the primary action. Preview is optional for item-level control.",
+      ],
     ],
   },
 };
@@ -108,6 +201,7 @@ const configs: Record<
 const relatedTools = [
   ["/v2-preview/instagram-downloader", "All Instagram"],
   ["/v2-preview/instagram-reels-downloader", "Reels"],
+  ["/v2-preview/instagram-video-downloader", "Videos"],
   ["/v2-preview/instagram-photo-downloader", "Photos"],
   ["/v2-preview/instagram-carousel-downloader", "Carousels"],
 ] as const;
@@ -117,7 +211,7 @@ export function V2InstagramToolPage({ kind }: { kind: V2InstagramKind }) {
 
   return (
     <V2SiteShell>
-      <section className="mx-auto w-full max-w-6xl px-4 pb-11 pt-10 text-center sm:px-6 sm:pb-14 sm:pt-13 lg:px-8">
+      <section className="mx-auto w-full max-w-6xl px-4 pb-10 pt-9 text-center sm:px-6 sm:pb-12 sm:pt-11 lg:px-8">
         <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--v2-accent-strong)]">
           {page.eyebrow}
         </p>
@@ -128,7 +222,7 @@ export function V2InstagramToolPage({ kind }: { kind: V2InstagramKind }) {
           {page.intro}
         </p>
 
-        <div className="mt-7">
+        <div className="mt-6 sm:mt-7">
           <V2Downloader />
         </div>
       </section>
@@ -138,15 +232,14 @@ export function V2InstagramToolPage({ kind }: { kind: V2InstagramKind }) {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.15em] text-[var(--v2-accent-strong)]">
-                Built for this page
+                Instagram
               </p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.045em]">
-                Focused Instagram workflow.
+              <h2 className="mt-2 max-w-xl text-3xl font-black tracking-[-0.045em]">
+                {page.sectionTitle}
               </h2>
             </div>
             <p className="max-w-md text-sm leading-6 text-[var(--v2-muted)]">
-              The homepage stays broad; this page keeps the copy and supporting
-              information specific to the Instagram tool you opened.
+              {page.sectionText}
             </p>
           </div>
 
@@ -169,7 +262,7 @@ export function V2InstagramToolPage({ kind }: { kind: V2InstagramKind }) {
         </div>
       </section>
 
-      <section className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 sm:py-15 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
+      <section className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-11 sm:px-6 sm:py-14 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.15em] text-[var(--v2-accent-strong)]">
             How it works
@@ -178,8 +271,8 @@ export function V2InstagramToolPage({ kind }: { kind: V2InstagramKind }) {
             Copy. Paste. Download.
           </h2>
           <p className="mt-3 max-w-md text-sm leading-6 text-[var(--v2-muted)]">
-            SaveMingo keeps the visible steps short while resolver and delivery
-            details stay behind the interface.
+            Three simple steps from a supported public Instagram link to the
+            available media.
           </p>
         </div>
 
@@ -199,7 +292,7 @@ export function V2InstagramToolPage({ kind }: { kind: V2InstagramKind }) {
       </section>
 
       <section className="border-y border-[var(--v2-border)] bg-[var(--v2-surface)]/55">
-        <div className="mx-auto w-full max-w-4xl px-4 py-12 sm:px-6 sm:py-14">
+        <div className="mx-auto w-full max-w-4xl px-4 py-11 sm:px-6 sm:py-13">
           <div className="text-center">
             <p className="text-xs font-black uppercase tracking-[0.15em] text-[var(--v2-accent-strong)]">
               FAQ
