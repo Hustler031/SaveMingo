@@ -16,6 +16,32 @@ const FETCH_TIMEOUT_MS = 20_000;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36";
 
+function mediaHost(raw: string) {
+  try {
+    return new URL(raw).hostname.toLowerCase();
+  } catch {
+    return "invalid";
+  }
+}
+
+function logMedia(
+  level: "info" | "warn" | "error",
+  payload: Record<string, unknown>,
+) {
+  const line = JSON.stringify({
+    service: "media-delivery",
+    ...payload,
+  });
+
+  if (level === "error") {
+    console.error(line);
+  } else if (level === "warn") {
+    console.warn(line);
+  } else {
+    console.info(line);
+  }
+}
+
 function errorResponse(
   requestId: string,
   status: number,
@@ -42,9 +68,20 @@ function errorResponse(
   );
 }
 
+function requestHeaders(range: string | null, includeReferer: boolean) {
+  return {
+    Accept: "video/*,image/*,application/octet-stream;q=0.8,*/*;q=0.1",
+    "Accept-Language": "en-US,en;q=0.8",
+    "User-Agent": USER_AGENT,
+    ...(includeReferer ? { Referer: "https://www.instagram.com/" } : {}),
+    ...(range ? { Range: range } : {}),
+  };
+}
+
 async function fetchAllowedMedia(
   sourceUrl: string,
   range: string | null,
+  requestId: string,
 ) {
   let currentUrl = new URL(sourceUrl);
 
@@ -53,6 +90,7 @@ async function fetchAllowedMedia(
       return {
         ok: false as const,
         reason: "blocked-url" as const,
+        host: currentUrl.hostname,
       };
     }
 
@@ -64,14 +102,27 @@ async function fetchAllowedMedia(
         redirect: "manual",
         cache: "no-store",
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-        headers: {
-          Accept: "video/*,image/*,application/octet-stream;q=0.8,*/*;q=0.1",
-          "Accept-Language": "en-US,en;q=0.8",
-          Referer: "https://www.instagram.com/",
-          "User-Agent": USER_AGENT,
-          ...(range ? { Range: range } : {}),
-        },
+        headers: requestHeaders(range, true),
       });
+
+      // Some Meta CDN edges reject hotlink-style Referer headers while the
+      // same signed public URL succeeds with ordinary browser fetch headers.
+      if (response.status === 401 || response.status === 403) {
+        logMedia("warn", {
+          event: "media.retry_without_referer",
+          requestId,
+          host: currentUrl.hostname,
+          upstreamStatus: response.status,
+        });
+
+        response = await fetch(currentUrl, {
+          method: "GET",
+          redirect: "manual",
+          cache: "no-store",
+          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+          headers: requestHeaders(range, false),
+        });
+      }
     } catch (error) {
       return {
         ok: false as const,
@@ -80,6 +131,8 @@ async function fetchAllowedMedia(
           (error.name === "TimeoutError" || error.name === "AbortError")
             ? ("timeout" as const)
             : ("network" as const),
+        host: currentUrl.hostname,
+        errorName: error instanceof Error ? error.name : "UnknownError",
       };
     }
 
@@ -90,10 +143,22 @@ async function fetchAllowedMedia(
         return {
           ok: false as const,
           reason: "blocked-redirect" as const,
+          host: currentUrl.hostname,
+          status: response.status,
         };
       }
 
-      currentUrl = new URL(location, currentUrl);
+      const nextUrl = new URL(location, currentUrl);
+      if (!isAllowedInstagramMediaUrl(nextUrl.toString())) {
+        return {
+          ok: false as const,
+          reason: "blocked-redirect" as const,
+          host: nextUrl.hostname,
+          status: response.status,
+        };
+      }
+
+      currentUrl = nextUrl;
       continue;
     }
 
@@ -101,23 +166,28 @@ async function fetchAllowedMedia(
       return {
         ok: false as const,
         reason: "upstream" as const,
+        host: currentUrl.hostname,
         status: response.status,
+        contentType: response.headers.get("content-type"),
       };
     }
 
     return {
       ok: true as const,
       response,
+      host: currentUrl.hostname,
     };
   }
 
   return {
     ok: false as const,
     reason: "blocked-redirect" as const,
+    host: currentUrl.hostname,
   };
 }
 
 export async function GET(request: Request) {
+  const startedAt = Date.now();
   const requestId = createRequestId();
   const requestUrl = new URL(request.url);
   const source = requestUrl.searchParams.get("src");
@@ -126,6 +196,14 @@ export async function GET(request: Request) {
   );
 
   if (!source || !isAllowedInstagramMediaUrl(source)) {
+    logMedia("warn", {
+      event: "media.rejected",
+      requestId,
+      sourceHost: source ? mediaHost(source) : "missing",
+      reason: "invalid-source",
+      durationMs: Date.now() - startedAt,
+    });
+
     return errorResponse(
       requestId,
       400,
@@ -137,9 +215,23 @@ export async function GET(request: Request) {
   const upstream = await fetchAllowedMedia(
     source,
     request.headers.get("range"),
+    requestId,
   );
 
   if (!upstream.ok) {
+    logMedia("warn", {
+      event: "media.failed",
+      requestId,
+      sourceHost: mediaHost(source),
+      upstreamHost: upstream.host,
+      reason: upstream.reason,
+      upstreamStatus: "status" in upstream ? upstream.status : undefined,
+      upstreamContentType:
+        "contentType" in upstream ? upstream.contentType : undefined,
+      errorName: "errorName" in upstream ? upstream.errorName : undefined,
+      durationMs: Date.now() - startedAt,
+    });
+
     if (upstream.reason === "timeout") {
       return errorResponse(
         requestId,
@@ -179,6 +271,16 @@ export async function GET(request: Request) {
     !normalizedType.startsWith("image/") &&
     normalizedType !== "application/octet-stream"
   ) {
+    logMedia("warn", {
+      event: "media.invalid_content_type",
+      requestId,
+      sourceHost: mediaHost(source),
+      upstreamHost: upstream.host,
+      upstreamStatus: response.status,
+      upstreamContentType: contentType,
+      durationMs: Date.now() - startedAt,
+    });
+
     return errorResponse(
       requestId,
       502,
@@ -196,6 +298,15 @@ export async function GET(request: Request) {
     Number.isFinite(contentLength) &&
     contentLength > MAX_DECLARED_BYTES
   ) {
+    logMedia("warn", {
+      event: "media.too_large",
+      requestId,
+      sourceHost: mediaHost(source),
+      upstreamHost: upstream.host,
+      contentLength,
+      durationMs: Date.now() - startedAt,
+    });
+
     return errorResponse(
       requestId,
       413,
@@ -226,6 +337,21 @@ export async function GET(request: Request) {
       headers.set(name, value);
     }
   }
+
+  logMedia("info", {
+    event: "media.success",
+    requestId,
+    sourceHost: mediaHost(source),
+    upstreamHost: upstream.host,
+    upstreamStatus: response.status,
+    contentType: normalizedType,
+    contentLength:
+      Number.isFinite(contentLength) && contentLength > 0
+        ? contentLength
+        : undefined,
+    range: Boolean(request.headers.get("range")),
+    durationMs: Date.now() - startedAt,
+  });
 
   return new Response(response.body, {
     status: response.status,
