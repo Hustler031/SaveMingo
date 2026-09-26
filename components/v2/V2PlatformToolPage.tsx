@@ -46,7 +46,7 @@ const pinterestRelated: Array<[string, string]> = [
 
 const redditRelated: Array<[string, string]> = [
   ["/v2-preview/reddit-downloader", "Reddit Downloader"],
-  ["/v2-preview/reddit-video-downloader", "Reddit Video"],
+  ["/v2-preview/reddit-video-downloader", "Reddit Video + Sound Check"],
   ["/v2-preview/reddit-image-downloader", "Reddit Images"],
   ["/v2-preview/reddit-gif-downloader", "Reddit GIF"],
 ];
