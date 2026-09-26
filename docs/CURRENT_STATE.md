@@ -397,7 +397,7 @@ Production/main remains untouched.
 
 ## SM-013 — Reddit audio/video muxing
 
-Status: **IMPLEMENTED IN SOURCE / CI + LOCAL REAL-FIXTURE VERIFICATION PENDING**
+Status: **IMPLEMENTED / CI VERIFIED / LOCAL REAL-FIXTURE VERIFICATION PENDING**
 
 Branch:
 `chatgpt/SM-013-reddit-audio-mux`
