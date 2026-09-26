@@ -866,3 +866,27 @@ Therefore every new platform must have:
 The shared frontend should consume normalized media results rather than platform extraction internals. The shared `/api/v1/resolve` endpoint detects the platform and routes to the matching adapter.
 
 A new platform must not import or mutate another platform's resolver in order to work. Shared infrastructure changes must be backward-compatible and covered by regression tests.
+
+## SM-014 launch-state override
+
+The historical sections above describe the product's staged evolution. The
+launch architecture now includes isolated adapters for Instagram, X/Twitter,
+Pinterest, Reddit and TikTok behind the same normalized resolver contract.
+
+Production SEO promotion remains capability-gated:
+- Instagram production cluster: indexable after fresh launch regression;
+- X/Twitter production cluster: indexable after fresh launch regression;
+- Pinterest, Reddit and TikTok production routes: present but noindex until
+  their current hosted real-fixture gates pass;
+- legacy `/v2-preview/*`: review-only/noindex and not part of the sitemap.
+
+The approved production UX is the V2 visual system: multi-platform homepage,
+platform dropdown navigation, download-first result cards, optional preview,
+mobile/desktop support and light/dark mode.
+
+Reddit merged-with-sound production processing is Cloudflare-native:
+`savemingo` Worker → private Service Binding → `savemingo-reddit-mux`
+Worker → isolated Node/FFmpeg Container. The container is optional from the
+perspective of the core product: when it is unavailable, Reddit video-only and
+all other platforms remain available.
+
