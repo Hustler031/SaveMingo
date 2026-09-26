@@ -74,6 +74,28 @@ function decodeReddit(value: string | undefined) {
   return value?.replace(/&amp;/g, "&");
 }
 
+function isCanonicalRedditPost(url: URL) {
+  const host = url.hostname.toLowerCase();
+
+  if (
+    host !== "www.reddit.com" &&
+    host !== "reddit.com" &&
+    host !== "old.reddit.com" &&
+    host !== "new.reddit.com"
+  ) {
+    return false;
+  }
+
+  return url.pathname.split("/").filter(Boolean).includes("comments");
+}
+
+function isRedditSharePath(url: URL) {
+  const parts = url.pathname.split("/").filter(Boolean);
+  const shareIndex = parts.indexOf("s");
+
+  return shareIndex >= 0 && Boolean(parts[shareIndex + 1]);
+}
+
 async function resolveRedditCanonical(sourceUrl: string) {
   let current = new URL(sourceUrl);
 
@@ -84,12 +106,7 @@ async function resolveRedditCanonical(sourceUrl: string) {
   ) {
     const host = current.hostname.toLowerCase();
 
-    if (
-      host === "www.reddit.com" ||
-      host === "reddit.com" ||
-      host === "old.reddit.com" ||
-      host === "new.reddit.com"
-    ) {
+    if (isCanonicalRedditPost(current)) {
       return { ok: true as const, url: current };
     }
 
@@ -99,6 +116,21 @@ async function resolveRedditCanonical(sourceUrl: string) {
         code: ERROR_CODES.REDDIT_RESOLVER_FAILED,
         message: "Reddit redirected outside its supported public web hosts.",
         diagnostic: "cross-host-redirect",
+      };
+    }
+
+    if (
+      (host === "www.reddit.com" ||
+        host === "reddit.com" ||
+        host === "old.reddit.com" ||
+        host === "new.reddit.com") &&
+      !isRedditSharePath(current)
+    ) {
+      return {
+        ok: false as const,
+        code: ERROR_CODES.REDDIT_RESOLVER_FAILED,
+        message: "This Reddit URL is not a supported public post or share link.",
+        diagnostic: "non-post-reddit-url",
       };
     }
 
