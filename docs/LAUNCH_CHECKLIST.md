@@ -22,7 +22,7 @@
   until their runtime gates pass
 - [x] Canonicals use `https://savemingo.com`
 - [x] Indexable routes are the only platform routes emitted in sitemap
-- [x] Legacy `/v2-preview/*` remains noindex and is blocked in robots
+- [x] Legacy `/v2-preview/*` URLs permanently redirect to production routes
 - [x] Internal platform/sibling links use production URLs
 - [x] Homepage WebSite/WebApplication structured data added
 - [x] Legal/company links remain available in production footer
