@@ -27,6 +27,7 @@ describe("Reddit resolver", () => {
               width: 1280,
               height: 720,
               is_gif: false,
+              has_audio: true,
             },
           },
         }),
@@ -48,7 +49,40 @@ describe("Reddit resolver", () => {
       expect(result.media[0]).toMatchObject({
         type: "video",
         url: "https://v.redd.it/example/DASH_720.mp4",
+        audioStatus: "separate",
       });
+    }
+  });
+
+  it("marks a Reddit video with no reported audio", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        redditPayload({
+          secure_media: {
+            reddit_video: {
+              fallback_url: "https://v.redd.it/example/DASH_480.mp4",
+              width: 854,
+              height: 480,
+              is_gif: false,
+              has_audio: false,
+            },
+          },
+        }),
+        { status: 200 },
+      ),
+    );
+
+    const result = await resolveReddit(
+      "https://www.reddit.com/r/videos/comments/abc123/example/",
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      contentType: "video",
+    });
+
+    if (result.ok) {
+      expect(result.media[0]?.audioStatus).toBe("none");
     }
   });
 
