@@ -23,7 +23,10 @@ type GraphqlSuccess = {
   provider: "graphql";
   contentType: InstagramContentType;
   media: MediaAsset[];
-  strategy: "graphql-video-versions";
+  strategy:
+    | "graphql-video-versions"
+    | "graphql-image-versions"
+    | "graphql-carousel";
 };
 
 type GraphqlFailure = {
@@ -39,17 +42,20 @@ type GraphqlFailure = {
     | "not-found"
     | "timeout"
     | "network"
-    | "no-video";
+    | "no-media";
   debug: GraphqlDebug;
 };
 
 export type InstagramGraphqlResult = GraphqlSuccess | GraphqlFailure;
 
 type InstagramMediaItem = {
+  id?: unknown;
+  pk?: unknown;
   code?: unknown;
   media_type?: unknown;
   video_versions?: unknown;
   image_versions2?: unknown;
+  carousel_media?: unknown;
 };
 
 function failure(
@@ -161,7 +167,7 @@ function selectBestImage(value: unknown) {
     return undefined;
   }
 
-  const sorted = candidates
+  return candidates
     .map((item) => {
       if (!item || typeof item !== "object") {
         return undefined;
@@ -191,40 +197,113 @@ function selectBestImage(value: unknown) {
       const leftPixels = (left.width ?? 0) * (left.height ?? 0);
       const rightPixels = (right.width ?? 0) * (right.height ?? 0);
       return rightPixels - leftPixels;
-    });
-
-  return sorted[0];
+    })[0];
 }
 
-export function normalizeGraphqlVideoItem(
+function mediaId(item: InstagramMediaItem, index: number) {
+  for (const value of [item.id, item.pk, item.code]) {
+    if (typeof value === "string" && value) {
+      return value;
+    }
+
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return String(value);
+    }
+  }
+
+  return "media-" + String(index + 1);
+}
+
+function normalizeAsset(
+  item: InstagramMediaItem,
+  index: number,
+): MediaAsset | undefined {
+  const video = selectBestVideoVersion(item.video_versions);
+  const image = selectBestImage(item.image_versions2);
+
+  if (video) {
+    return {
+      id: mediaId(item, index),
+      type: "video",
+      url: video.url,
+      thumbnailUrl: image?.url,
+      width: video.width,
+      height: video.height,
+      quality: "Source",
+    };
+  }
+
+  if (image) {
+    return {
+      id: mediaId(item, index),
+      type: "image",
+      url: image.url,
+      width: image.width,
+      height: image.height,
+      quality: "Image",
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeGraphqlMediaItem(
   item: InstagramMediaItem,
   requestedType: InstagramContentType,
 ): GraphqlSuccess | undefined {
-  const video = selectBestVideoVersion(item.video_versions);
-  if (!video) {
+  if (Array.isArray(item.carousel_media) && item.carousel_media.length > 0) {
+    const media: MediaAsset[] = [];
+
+    for (let index = 0; index < item.carousel_media.length; index++) {
+      const child = item.carousel_media[index];
+
+      if (!child || typeof child !== "object") {
+        return undefined;
+      }
+
+      const asset = normalizeAsset(child as InstagramMediaItem, index);
+      if (!asset) {
+        return undefined;
+      }
+
+      media.push(asset);
+    }
+
+    return {
+      ok: true,
+      provider: "graphql",
+      contentType: "carousel",
+      strategy: "graphql-carousel",
+      media,
+    };
+  }
+
+  const asset = normalizeAsset(item, 0);
+  if (!asset) {
     return undefined;
   }
 
-  const image = selectBestImage(item.image_versions2);
+  if (asset.type === "video") {
+    return {
+      ok: true,
+      provider: "graphql",
+      contentType: requestedType === "reel" ? "reel" : "video",
+      strategy: "graphql-video-versions",
+      media: [asset],
+    };
+  }
 
   return {
     ok: true,
     provider: "graphql",
-    contentType: requestedType === "reel" ? "reel" : "video",
-    strategy: "graphql-video-versions",
-    media: [
-      {
-        id: "media-1",
-        type: "video",
-        url: video.url,
-        thumbnailUrl: image?.url,
-        width: video.width,
-        height: video.height,
-        quality: "Source",
-      },
-    ],
+    contentType: "photo",
+    strategy: "graphql-image-versions",
+    media: [asset],
   };
 }
+
+// Retained during SM-004 so any downstream code from SM-003 keeps compiling.
+export const normalizeGraphqlVideoItem = normalizeGraphqlMediaItem;
 
 async function bootstrapAnonymousSession() {
   const response = await fetch("https://www.instagram.com/", {
@@ -442,7 +521,7 @@ export async function resolveInstagramGraphql(
     if (errors.length > 0 || !data) {
       return failure(
         ERROR_CODES.INSTAGRAM_UPSTREAM_CHANGED,
-        "Instagram’s current media query could not resolve this public Reel.",
+        "Instagram’s current media query could not resolve this public post.",
         "execution-error",
         debug,
       );
@@ -466,7 +545,7 @@ export async function resolveInstagramGraphql(
     );
   }
 
-  const normalized = normalizeGraphqlVideoItem(
+  const normalized = normalizeGraphqlMediaItem(
     first as InstagramMediaItem,
     requestedType,
   );
@@ -477,8 +556,8 @@ export async function resolveInstagramGraphql(
 
   return failure(
     ERROR_CODES.INSTAGRAM_MEDIA_UNAVAILABLE,
-    "Instagram returned the post but no progressive public video URL.",
-    "no-video",
+    "Instagram returned the post but SaveMingo could not normalize its public media.",
+    "no-media",
     debug,
   );
 }
