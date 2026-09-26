@@ -8,7 +8,7 @@
     "check": "node --test lib.test.mjs && node --check server.mjs && node --check worker.mjs"
   },
   "dependencies": {
-    "@cloudflare/containers": "^0.3.7",
-    "ffmpeg-static": "^5.2.0"
+    "@cloudflare/containers": "0.3.7",
+    "ffmpeg-static": "5.2.0"
   }
 }
