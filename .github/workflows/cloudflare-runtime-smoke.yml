@@ -4,6 +4,18 @@ on:
   push:
     branches:
       - "chatgpt/SM-005C-cloudflare"
+      - main
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "resolver/**"
+      - "scripts/cloudflare-runtime-smoke.mjs"
+      - ".github/workflows/cloudflare-runtime-smoke.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - "wrangler.jsonc"
   workflow_dispatch:
 
 permissions:
@@ -26,7 +38,7 @@ jobs:
           node-version: 24
 
       - name: Wait briefly for Worker rollout
-        run: sleep 10
+        run: sleep 15
 
       - name: Run Cloudflare runtime smoke
         run: node scripts/cloudflare-runtime-smoke.mjs
