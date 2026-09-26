@@ -878,7 +878,7 @@ Production SEO promotion remains capability-gated:
 - X/Twitter production cluster: indexable after fresh launch regression;
 - Pinterest, Reddit and TikTok production routes: present but noindex until
   their current hosted real-fixture gates pass;
-- legacy `/v2-preview/*`: review-only/noindex and not part of the sitemap.
+- legacy `/v2-preview/*`: redirected to production equivalents and not part of the sitemap.
 
 The approved production UX is the V2 visual system: multi-platform homepage,
 platform dropdown navigation, download-first result cards, optional preview,
