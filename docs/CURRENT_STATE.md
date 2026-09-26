@@ -10,36 +10,52 @@ Supporting line: **Save it. Keep it.**
 - **SM-001 — Foundation: COMPLETE**
 - **SM-002 — Product UI / downloader states: COMPLETE**
 - **SM-003 — Instagram resolver foundation: LIVE VERIFIED**
-- **SM-004 — Photo + carousel + download delivery: MERGED**
-- **SM-005 — Reliability / monitoring hardening: CODE + CI VERIFIED, awaiting new-host runtime verification**
-- **SM-005C — Cloudflare migration trial: CONFIGURED + BUILD VERIFIED, account connection pending**
+- **SM-004 — Photo + carousel + download delivery: COMPLETE**
+- **SM-005 — Reliability / monitoring hardening: COMPLETE**
+- **SM-005C — Cloudflare migration trial: LIVE VERIFIED**
 
 ## Version
 `0.4.0`
 
 ## Infrastructure
 - GitHub: `Hustler031/SaveMingo`
-- Active branch: `chatgpt/SM-005C-cloudflare`
-- Primary hosting target under trial: Cloudflare Workers
-- Cloudflare Worker name: `savemingo`
+- Migration branch: `chatgpt/SM-005C-cloudflare`
+- Primary hosting target: Cloudflare Workers
+- Cloudflare Worker: `savemingo`
+- Verified Worker URL: `https://savemingo.ashabup0.workers.dev`
 - Vercel project: `save-mingo` retained as rollback
 - Vercel project ID: `prj_e7MsyDZdG6Jp29NfRLpz6gYbMcrb`
 - Custom domain `savemingo.com`: **not cut over**
 - Database: not required
 - Instagram credentials: not required
 
-## Cloudflare migration status
+## Cloudflare migration proof
 - official vinext initializer: PASS
 - vinext compatibility scan: acceptable
-- `vite.config.ts`: generated
-- `wrangler.jsonc`: generated
-- locked npm dependency tree: generated
-- Cloudflare/vinext production build: PASS
-- GitHub dual-build CI: enabled
-- Cloudflare account/Git integration: pending owner authorization
-- Workers runtime Instagram tests: pending deployment
+- locked dependency install: PASS
+- TypeScript: PASS
+- ESLint: PASS
+- unit tests: PASS
+- Next.js fallback build: PASS
+- Cloudflare/vinext build: PASS
+- Cloudflare deployment: PASS
+- GitHub-to-Cloudflare integration: PASS
 
-## Reliability retained
+## Cloudflare runtime smoke proof
+Executed from GitHub Actions against the public Worker URL:
+- homepage: `200`
+- `/api/health`: healthy, version `0.4.0`
+- `/api/health/resolver`: healthy
+- invalid URL: `SM-URL-001`
+- public Reel: resolved as `reel`, 1 video item
+- public carousel: resolved as `carousel`, 2 media items
+- media delivery: `206 Partial Content`, `video/mp4`
+- SaveMingo request IDs present throughout
+
+The reusable smoke workflow is:
+`.github/workflows/cloudflare-runtime-smoke.yml`
+
+## Reliability
 - structured operational events
 - request IDs
 - best-effort per-instance rate limiting
@@ -52,9 +68,10 @@ Supporting line: **Save it. Keep it.**
 ## Known audit item
 Single-photo normalization remains unit-verified; a stable independent live single-photo fixture remains pending.
 
-## Hosting decision rule
-Cloudflare becomes primary only if real resolver and media-stream tests pass from the Workers network. Vercel remains rollback until then.
-
-
-## Cloudflare build trigger
-A fresh branch commit was pushed after Cloudflare production branch control was changed to `chatgpt/SM-005C-cloudflare`. This is intentional so Cloudflare creates a new build from the vinext-enabled branch rather than retrying the old main-branch build.
+## Next actions
+1. Merge PR #7 after final checks are green.
+2. Change Cloudflare production branch from `chatgpt/SM-005C-cloudflare` back to `main`.
+3. Verify the resulting main-branch Worker deployment with the runtime smoke.
+4. Keep Vercel available as rollback.
+5. Start **SM-006 — SEO + analytics**.
+6. Do not move `savemingo.com` until launch review is complete.
