@@ -30,6 +30,11 @@ export const RELIABILITY_POLICY = {
     maxJsonBytes: 3_000_000,
     maxRedirects: 4,
   },
+  tiktok: {
+    fetchTimeoutMs: 12_000,
+    maxHtmlBytes: 6_000_000,
+    maxRedirects: 4,
+  },
 } as const;
 
 export type RateLimitScope = "resolve" | "media";
