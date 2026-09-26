@@ -1,35 +1,44 @@
 # Handoff
 
 ## Current milestone
-**SM-005 — Reliability / monitoring hardening**
+**SM-005C — Cloudflare migration trial**
 
 ## Branch
-`chatgpt/SM-005-reliability`
+`chatgpt/SM-005C-cloudflare`
 
-## Starting point
-SM-004 is merged to main with:
-- Reel/video resolver
-- photo normalization path
-- mixed carousel normalization
-- same-origin media delivery
-- CDN allow-list + redirect validation
-- structured media transport diagnostics
+## Completed
+- branched from latest SM-005 reliability work
+- ran official `vinext init --platform=cloudflare`
+- selected no data cache, no CDN cache, no Images binding, no global prerender
+- generated `vite.config.ts` and `wrangler.jsonc`
+- generated package lock
+- Cloudflare/vinext production build passed
+- normal Next.js path remains present
+- CI now validates both Next.js and vinext/Cloudflare builds
+- local Cloudflare Windows helper scripts added
 
-## SM-005 work
-- central reliability policy
-- best-effort per-instance rate limiting
-- request body size limit
-- structured operational logging helper
-- richer health endpoints
-- version + rate-limit response headers
-- rate-limit tests
-- monitoring runbook
+## Current blocker / owner action
+Cloudflare account authorization and repository connection are required before the first real Worker Preview can be deployed.
 
-## Important
-Do not claim the per-instance limiter is globally distributed.
+Preferred setup:
+- Cloudflare Workers & Pages
+- import GitHub repository `Hustler031/SaveMingo`
+- production branch: `main`
+- enable preview builds for non-main branches
+- do not connect `savemingo.com` yet
 
-## Pending external dependency
-Sentry remains optional/unconfigured until a Sentry project and DSN are connected.
+## After account connection
+1. Deploy `chatgpt/SM-005C-cloudflare` preview.
+2. Verify health endpoints.
+3. Resolve a known public Reel.
+4. Resolve a public carousel.
+5. Verify same-origin media streaming/download.
+6. Inspect Worker runtime logs for request IDs/errors.
+7. Fix any Worker-runtime differences.
+8. Merge Cloudflare + SM-005 reliability work only after the above passes.
 
-## Next after SM-005
+## Rollback
+Keep Vercel untouched during the trial.
+
+## Next after successful Cloudflare trial
 SM-006 — SEO + analytics.

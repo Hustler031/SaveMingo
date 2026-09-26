@@ -12,15 +12,18 @@ New-Item -ItemType Directory -Force -Path $folder | Out-Null
 
 try { ("Node: " + (node --version)) | Out-File (Join-Path $folder "versions.txt") } catch {}
 try { ("npm: " + (npm --version)) | Out-File (Join-Path $folder "versions.txt") -Append } catch {}
+try { ("Wrangler: " + (npx wrangler --version)) | Out-File (Join-Path $folder "versions.txt") -Append } catch {}
 try { git status --short --branch | Out-File (Join-Path $folder "git-state.txt") } catch {}
 try { git log -5 --oneline | Out-File (Join-Path $folder "recent-commits.txt") } catch {}
 try { npm run typecheck *>&1 | Out-File (Join-Path $folder "typecheck.txt") } catch {}
 try { npm run lint *>&1 | Out-File (Join-Path $folder "lint.txt") } catch {}
+try { npm run test *>&1 | Out-File (Join-Path $folder "tests.txt") } catch {}
+try { npm run build:vinext *>&1 | Out-File (Join-Path $folder "cloudflare-build.txt") } catch {}
 
-# Never copy .env files, cookies, tokens, browser data, or credentials.
+# Never copy .env files, .dev.vars, cookies, tokens, browser data, or credentials.
 Compress-Archive -Path (Join-Path $folder "*") -DestinationPath $zip -Force
 
 Write-Host ""
 Write-Host "Diagnostic bundle created:" -ForegroundColor Green
 Write-Host $zip
-Write-Host "This script intentionally excludes .env files and credentials."
+Write-Host "This script intentionally excludes environment files and credentials."
