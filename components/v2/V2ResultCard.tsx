@@ -73,7 +73,7 @@ export function V2ResultCard({ result }: Props) {
   }
 
   return (
-    <section className="mx-auto max-w-3xl overflow-hidden rounded-[22px] border border-[var(--v2-border)] bg-[var(--v2-surface)] text-left shadow-[var(--v2-shadow)]">
+    <section className="mx-auto max-w-2xl overflow-hidden rounded-[22px] border border-[var(--v2-border)] bg-[var(--v2-surface)] text-left shadow-[var(--v2-shadow)]">
       <div className="p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -120,8 +120,9 @@ export function V2ResultCard({ result }: Props) {
           <button
             type="button"
             onClick={() => setPreviewOpen((current) => !current)}
-            className="mt-2.5 rounded-xl px-3 py-2 text-xs font-black text-[var(--v2-accent-strong)] transition hover:bg-[var(--v2-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
+            className="mt-2.5 flex h-10 items-center justify-center gap-2 rounded-xl border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-4 text-xs font-black text-[var(--v2-text)] transition hover:border-[var(--v2-accent)] hover:text-[var(--v2-accent-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
           >
+            <EyeIcon />
             {previewOpen ? "Hide preview" : "Preview media"}
           </button>
         </div>
@@ -316,6 +317,21 @@ function ArrowIcon({ direction }: { direction: "left" | "right" }) {
       aria-hidden="true"
     >
       <path d="m7 4 6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+
+function EyeIcon() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
+      <path
+        d="M2.5 10s2.5-4.5 7.5-4.5 7.5 4.5 7.5 4.5-2.5 4.5-7.5 4.5S2.5 10 2.5 10Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <circle cx="10" cy="10" r="2.2" stroke="currentColor" strokeWidth="1.6" />
     </svg>
   );
 }
