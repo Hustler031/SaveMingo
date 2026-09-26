@@ -71,7 +71,7 @@ const menus: Record<
     activePrefixes: ["/v2-preview/reddit"],
     hint: "Videos, images, GIFs and galleries",
     items: [
-      ["/v2-preview/reddit-video-downloader", "Video Downloader"],
+      ["/v2-preview/reddit-video-downloader", "Video + Sound Check"],
       ["/v2-preview/reddit-image-downloader", "Image Downloader"],
       ["/v2-preview/reddit-gif-downloader", "GIF Downloader"],
     ],
