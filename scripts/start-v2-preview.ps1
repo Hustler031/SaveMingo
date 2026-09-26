@@ -73,6 +73,7 @@ if ($ready) {
   Write-Host "X:         $baseUrl/v2-preview/x-downloader" -ForegroundColor DarkGray
   Write-Host "Pinterest: $baseUrl/v2-preview/pinterest-downloader" -ForegroundColor DarkGray
   Write-Host "Reddit:    $baseUrl/v2-preview/reddit-downloader" -ForegroundColor DarkGray
+  Write-Host "TikTok:    $baseUrl/v2-preview/tiktok-downloader" -ForegroundColor DarkGray
   Start-Process $previewUrl
 } else {
   Write-Host ""
