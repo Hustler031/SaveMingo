@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { trackEvent } from "@/lib/analytics/events";
 import type { MediaAsset, ResolveSuccess } from "@/lib/downloader/types";
 
@@ -36,10 +36,6 @@ export function V2ResultCard({ result }: Props) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const hasMultiple = result.media.length > 1;
   const selected = result.media[selectedIndex] ?? result.media[0];
-
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [result.requestId]);
 
   function selectRelative(delta: number) {
     setSelectedIndex((current) => {
