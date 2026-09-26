@@ -14,43 +14,63 @@ Supporting line: **Save it. Keep it.**
 - **SM-005 — Reliability / monitoring hardening: COMPLETE**
 - **SM-005C — Cloudflare migration: COMPLETE**
 - **SM-006 — SEO + analytics foundation: COMPLETE**
-- **SM-007 — Launch readiness: IN PROGRESS**
+- **SM-007 — Launch readiness: COMPLETE**
+- **SM-008 — GA4 wiring: IN PROGRESS**
 
 ## Version
 `0.4.0`
 
 ## Infrastructure
 - GitHub: `Hustler031/SaveMingo`
-- Active development branch: `chatgpt/SM-007-launch-readiness`
+- Active development branch: `chatgpt/SM-008-ga4-wiring`
 - Primary runtime: Cloudflare Workers
 - Worker URL: `https://savemingo.ashabup0.workers.dev`
 - Vercel retained as rollback
-- Custom domain `savemingo.com`: not cut over
+- Custom domain `savemingo.com`: waiting for Hostinger nameserver cooldown
 - Database: not required
 
-## Search / analytics
-- Search-intent pages: merged
-- sitemap.xml: implemented
-- robots.txt: implemented
-- canonicals: implemented
-- GA4 loader/events: implemented but no Measurement ID configured yet
-- Search Console verification hook: implemented
-- GSC Wizard: installed in ChatGPT for post-domain SEO inspection
+## Launch verification
+Production Worker has passed:
+- all SEO routes
+- canonical/title/description checks
+- robots.txt
+- sitemap.xml
+- manifest
+- custom 404
+- health endpoints
+- public Reel resolve
+- public carousel resolve
+- partial media streaming
 
-## Launch-readiness work
-- expanded production smoke for all SEO pages
-- canonical/title/description assertions
-- sitemap/robots assertions
-- manifest/icon
-- 404 assertion
-- existing live Reel/carousel/media-stream checks retained
+## Search Console
+- Domain property: `sc-domain:savemingo.com`
+- Verified/readable: yes
+- Current clicks/impressions: 0 (pre-launch expected)
+- Sitemap submitted: no — intentionally waiting for custom-domain cutover
+- GSC Wizard connected
+
+## Google Analytics 4
+- GA4 account: SaveMingo
+- GA4 property: SaveMingo
+- Property ID: `properties/556072162`
+- Web stream: SaveMingo Web
+- Measurement ID: `G-ZXK1PRVH6X`
+- Funnel events implemented:
+  - `page_view`
+  - `paste_clicked`
+  - `resolve_started`
+  - `resolve_success`
+  - `resolve_failed`
+  - `download_clicked`
+- GA4 ↔ GSC Wizard site association: pending UI link
 
 ## Known audit item
 Single-photo normalization remains unit-verified; a stable independent live single-photo fixture remains pending.
 
 ## Next
-1. Complete SM-007 verification and merge.
-2. Connect `savemingo.com` to Cloudflare Worker.
-3. Configure GA4.
-4. Verify Search Console ownership and submit sitemap.
-5. Run full smoke on custom domain.
+1. Complete SM-008 build/runtime verification and merge.
+2. Link the SaveMingo GA4 property to `sc-domain:savemingo.com` in GSC Wizard.
+3. After Hostinger cooldown, switch nameservers to Cloudflare.
+4. Attach `savemingo.com` as Worker Custom Domain.
+5. Run full launch smoke on custom domain.
+6. Submit sitemap and inspect/index primary URLs in Search Console.
