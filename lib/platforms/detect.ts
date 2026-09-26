@@ -8,6 +8,11 @@ const INSTAGRAM_HOSTS = new Set([
   "www.instagr.am",
 ]);
 
+function isPinterestHostname(hostname: string) {
+  const value = hostname.toLowerCase().replace(/\.$/, "");
+  return value === "pinterest.com" || value.endsWith(".pinterest.com");
+}
+
 const X_HOSTS = new Set([
   "x.com",
   "www.x.com",
@@ -21,6 +26,10 @@ export function isInstagramHost(hostname: string) {
   return INSTAGRAM_HOSTS.has(hostname.toLowerCase());
 }
 
+export function isPinterestHost(hostname: string) {
+  return isPinterestHostname(hostname);
+}
+
 export function isXHost(hostname: string) {
   return X_HOSTS.has(hostname.toLowerCase());
 }
@@ -31,6 +40,7 @@ export function detectPlatformFromUrl(rawValue: string): Platform | null {
 
     if (isInstagramHost(parsed.hostname)) return "instagram";
     if (isXHost(parsed.hostname)) return "x";
+    if (isPinterestHost(parsed.hostname)) return "pinterest";
 
     return null;
   } catch {
