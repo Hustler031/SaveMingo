@@ -11,6 +11,9 @@ type RedditVideo = {
   height?: number;
   width?: number;
   is_gif?: boolean;
+  has_audio?: boolean;
+  dash_url?: string;
+  hls_url?: string;
 };
 
 type RedditPostData = {
@@ -253,6 +256,13 @@ function normalizeVideo(post: RedditPostData) {
           : "Best available",
       width: video?.width,
       height: video?.height,
+      audioStatus: video?.is_gif
+        ? "none"
+        : video?.has_audio === true
+          ? "separate"
+          : video?.has_audio === false
+            ? "none"
+            : "unknown",
     },
     contentType: video?.is_gif
       ? ("gif" as RedditContentType)
