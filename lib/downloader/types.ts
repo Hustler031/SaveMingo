@@ -41,6 +41,8 @@ export type MediaContentType =
   | PinterestContentType
   | RedditContentType;
 
+export type AudioStatus = "included" | "separate" | "none" | "unknown";
+
 export type MediaAsset = {
   id: string;
   type: "video" | "image";
@@ -49,6 +51,7 @@ export type MediaAsset = {
   quality?: string;
   width?: number;
   height?: number;
+  audioStatus?: AudioStatus;
 };
 
 export type ResolveSuccess = {
