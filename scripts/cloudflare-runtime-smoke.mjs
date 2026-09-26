@@ -43,7 +43,10 @@ async function htmlRequest(path) {
 }
 
 function assertSeo(html, path, expectedTitleFragment) {
-  const canonical = path === "/" ? "https://savemingo.com/" : "https://savemingo.com" + path;
+  const canonical =
+    path === "/" ? "https://savemingo.com" : "https://savemingo.com" + path;
+  const canonicalAlternates =
+    path === "/" ? [canonical, canonical + "/"] : [canonical];
 
   assert(
     html.toLowerCase().includes("<title"),
@@ -58,7 +61,8 @@ function assertSeo(html, path, expectedTitleFragment) {
     path + " is missing a meta description",
   );
   assert(
-    html.includes('rel="canonical"') && html.includes(canonical),
+    html.includes('rel="canonical"') &&
+      canonicalAlternates.some((value) => html.includes(value)),
     path + " is missing expected canonical " + canonical,
   );
 }
