@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 
 export function GET() {
   const platforms = platformHealth();
-  const status = platforms.every((platform) => platform.status === "healthy")
-    ? "healthy"
-    : "degraded";
+  const status = platforms.some((platform) => platform.status === "degraded")
+    ? "degraded"
+    : "healthy";
 
   return NextResponse.json(
     {
