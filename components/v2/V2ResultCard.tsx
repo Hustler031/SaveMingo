@@ -10,21 +10,23 @@ type Props = {
 };
 
 function mediaName(
+  platform: ResolveSuccess["platform"],
   contentType: ResolveSuccess["contentType"],
   index: number,
 ) {
-  return ["instagram", contentType, String(index + 1).padStart(2, "0")].join("-");
+  return [platform, contentType, String(index + 1).padStart(2, "0")].join("-");
 }
 
 function mediaHref(
   sourceUrl: string,
+  platform: ResolveSuccess["platform"],
   contentType: ResolveSuccess["contentType"],
   index: number,
   inline = false,
 ) {
   const params = new URLSearchParams({
     src: sourceUrl,
-    name: mediaName(contentType, index),
+    name: mediaName(platform, contentType, index),
   });
 
   if (inline) params.set("inline", "1");
@@ -54,7 +56,7 @@ export function V2ResultCard({ result }: Props) {
     result.media.forEach((item, index) => {
       window.setTimeout(() => {
         const anchor = document.createElement("a");
-        anchor.href = mediaHref(item.url, result.contentType, index);
+        anchor.href = mediaHref(item.url, result.platform, result.contentType, index);
         anchor.rel = "noopener";
         document.body.appendChild(anchor);
         anchor.click();
@@ -92,7 +94,7 @@ export function V2ResultCard({ result }: Props) {
           </div>
 
           <span className="rounded-full border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-3 py-1.5 text-[10px] font-black capitalize text-[var(--v2-muted)]">
-            Instagram {result.contentType}
+            {result.platform === "instagram" ? "Instagram" : "X"} {result.contentType}
           </span>
         </div>
 
@@ -108,7 +110,7 @@ export function V2ResultCard({ result }: Props) {
             </button>
           ) : (
             <a
-              href={mediaHref(selected.url, result.contentType, 0)}
+              href={mediaHref(selected.url, result.platform, result.contentType, 0)}
               onClick={trackSingleDownload}
               className="flex h-12 w-full max-w-[240px] items-center justify-center gap-2 rounded-[15px] bg-[var(--v2-accent)] px-5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
             >
@@ -136,11 +138,18 @@ export function V2ResultCard({ result }: Props) {
                 item={selected}
                 href={mediaHref(
                   selected.url,
+                  result.platform,
                   result.contentType,
                   selectedIndex,
                   true,
                 )}
-                alt={"Instagram " + selected.type + " preview " + (selectedIndex + 1)}
+                alt={
+                  (result.platform === "instagram" ? "Instagram" : "X") +
+                  " " +
+                  selected.type +
+                  " preview " +
+                  (selectedIndex + 1)
+                }
               />
 
               {hasMultiple && (
@@ -183,7 +192,7 @@ export function V2ResultCard({ result }: Props) {
 
               {hasMultiple && (
                 <a
-                  href={mediaHref(selected.url, result.contentType, selectedIndex)}
+                  href={mediaHref(selected.url, result.platform, result.contentType, selectedIndex)}
                   onClick={trackSingleDownload}
                   className="shrink-0 rounded-xl border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-3 py-2 text-xs font-black transition hover:border-[var(--v2-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
                 >
@@ -209,7 +218,7 @@ export function V2ResultCard({ result }: Props) {
                   >
                     <Thumbnail
                       item={item}
-                      href={mediaHref(item.url, result.contentType, index, true)}
+                      href={mediaHref(item.url, result.platform, result.contentType, index, true)}
                       number={index + 1}
                     />
                   </button>
