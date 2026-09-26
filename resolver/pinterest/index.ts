@@ -20,15 +20,15 @@ function metaContent(html: string, property: string) {
   const escaped = property.replace(/[.*+?^$()|[\]\\{}]/g, "\\$&");
   const patterns = [
     new RegExp(
-      '<meta[^>]+(?:property|name)=["\\']' +
+      "<meta[^>]+(?:property|name)=[\\\"']" +
         escaped +
-        '["\\'][^>]+content=["\\']([^"\\']+)["\\'][^>]*>',
+        "[\\\"'][^>]+content=[\\\"']([^\\\"']+)[\\\"'][^>]*>",
       "i",
     ),
     new RegExp(
-      '<meta[^>]+content=["\\']([^"\\']+)["\\'][^>]+(?:property|name)=["\\']' +
+      "<meta[^>]+content=[\\\"']([^\\\"']+)[\\\"'][^>]+(?:property|name)=[\\\"']" +
         escaped +
-        '["\\'][^>]*>',
+        "[\\\"'][^>]*>",
       "i",
     ),
   ];
