@@ -53,10 +53,16 @@ function platformCopy(platform: Platform | "auto") {
         placeholder: "Paste a Reddit post link",
         checking: "Checking that this is a supported public Reddit post link.",
       };
+    case "tiktok":
+      return {
+        label: "TikTok post link",
+        placeholder: "Paste a TikTok video or photo link",
+        checking: "Checking that this is a supported public TikTok post link.",
+      };
     default:
       return {
         label: "Supported media link",
-        placeholder: "Paste an Instagram, X, Pinterest, or Reddit link",
+        placeholder: "Paste an Instagram, X, Pinterest, Reddit, or TikTok link",
         checking: "Checking the platform and public link format.",
       };
   }
