@@ -30,6 +30,7 @@ export function isAllowedInstagramMediaUrl(raw: string) {
 
 export function safeMediaFilenameBase(raw: string | null) {
   const fallback = "savemingo-media";
+
   if (!raw) {
     return fallback;
   }
@@ -37,6 +38,7 @@ export function safeMediaFilenameBase(raw: string | null) {
   const value = raw
     .normalize("NFKD")
     .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/^\.+/, "")
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
 
