@@ -321,3 +321,51 @@ Production/main remains untouched.
 - The result card shows sound status before download and a clear notice after a Reddit video download begins when the source is silent/unknown or Reddit reports a separate audio stream.
 - Reddit video SEO now targets the exact high-intent phrase **Reddit Video Downloader with Sound** using the qualified H1/title **Reddit Video Downloader with Sound Check**.
 - This is intentionally not a claim that the current MP4 always contains merged audio. Reddit can store audio separately; automatic muxing remains a future capability.
+
+
+## SM-012 — TikTok isolated downloader
+
+Status: **IMPLEMENTED / CI VERIFICATION IN PROGRESS / LIVE TIKTOK FIXTURES PENDING**
+
+Branch:
+`chatgpt/SM-012-tiktok`
+
+Stacked on:
+`chatgpt/SM-011-x-pinterest-reddit-seo`
+
+Implemented:
+- TikTok is a fifth isolated platform adapter behind the shared normalized resolver contract;
+- supported URL validation for public full TikTok video/photo URLs;
+- supported short-link validation for `vm.tiktok.com`, `vt.tiktok.com`, and TikTok `/t/` share links;
+- server-side short-link redirect normalization restricted to TikTok hosts;
+- public TikTok page hydration parsing through `__UNIVERSAL_DATA_FOR_REHYDRATION__` with `SIGI_STATE` fallback;
+- video resolution using the strongest available public bitrate/playback source;
+- public TikTok photo/slideshow image normalization;
+- TikTok-specific `SM-TT-xxx` errors;
+- TikTok-specific timeout/HTML-size/redirect policy;
+- TikTok CDN media allow-list and TikTok-scoped download delivery;
+- independent health endpoint at `/api/health/platforms/tiktok`;
+- V2 navigation dropdown + homepage Testing card;
+- preview SEO cluster:
+  - `/v2-preview/tiktok-downloader`
+  - `/v2-preview/tiktok-video-downloader`
+  - `/v2-preview/tiktok-photo-downloader`
+  - `/v2-preview/tiktok-slideshow-downloader`
+- TikTok validation, media allow-list, video resolver, slideshow resolver, and missing-hydration tests;
+- `START_SAVEMINGO_TIKTOK.cmd` for direct local review.
+
+SEO/product rule:
+- target "TikTok video downloader without watermark" intent in explanatory copy;
+- only state that a clean/no-watermark source is used **when TikTok exposes one**;
+- do not claim watermark removal;
+- do not add a TikTok MP3/audio page until audio delivery is actually implemented and verified.
+
+Promotion gate:
+- real public TikTok video resolve + actual download;
+- real TikTok photo/slideshow resolve + Download All;
+- one real `vm.tiktok.com` or `vt.tiktok.com` short link;
+- Instagram/X/Pinterest/Reddit regression smoke;
+- only then change TikTok from Testing to Available and promote indexable production SEO routes.
+
+Production/main remains untouched.
+
