@@ -32,6 +32,37 @@ async function jsonRequest(path, init = {}) {
   return { response, data };
 }
 
+async function htmlRequest(path) {
+  const response = await fetch(base + path, { redirect: "follow" });
+  const html = await response.text();
+
+  assert(response.ok, path + " failed with " + response.status);
+  assert(html.includes("SaveMingo"), path + " is missing SaveMingo branding");
+
+  return { response, html };
+}
+
+function assertSeo(html, path, expectedTitleFragment) {
+  const canonical = path === "/" ? "https://savemingo.com/" : "https://savemingo.com" + path;
+
+  assert(
+    html.toLowerCase().includes("<title"),
+    path + " is missing a title element",
+  );
+  assert(
+    html.includes(expectedTitleFragment),
+    path + " title/content does not include expected phrase: " + expectedTitleFragment,
+  );
+  assert(
+    html.includes('name="description"'),
+    path + " is missing a meta description",
+  );
+  assert(
+    html.includes('rel="canonical"') && html.includes(canonical),
+    path + " is missing expected canonical " + canonical,
+  );
+}
+
 async function resolveInstagramWithRetry(label, url, attempts = 3) {
   let last;
 
@@ -83,11 +114,65 @@ async function resolveInstagramWithRetry(label, url, attempts = 3) {
 async function main() {
   console.log("SaveMingo Cloudflare runtime smoke:", base);
 
-  const home = await fetch(base + "/", { redirect: "follow" });
-  assert(home.ok, "Homepage failed with " + home.status);
-  const homeText = await home.text();
-  assert(homeText.includes("SaveMingo"), "Homepage does not contain SaveMingo branding");
-  console.log("PASS homepage", home.status);
+  const seoPages = [
+    ["/", "SaveMingo"],
+    ["/instagram-downloader", "Instagram Downloader"],
+    ["/instagram-reels-downloader", "Instagram Reels Downloader"],
+    ["/instagram-video-downloader", "Instagram Video Downloader"],
+    ["/instagram-photo-downloader", "Instagram Photo Downloader"],
+    ["/instagram-carousel-downloader", "Instagram Carousel Downloader"],
+    ["/how-to-download-instagram-reels", "How to Download Instagram Reels"],
+    ["/about", "About"],
+    ["/privacy", "Privacy"],
+    ["/terms", "Terms"],
+    ["/copyright", "Copyright"],
+  ];
+
+  for (const [path, expected] of seoPages) {
+    const page = await htmlRequest(path);
+    assertSeo(page.html, path, expected);
+    console.log("PASS SEO", path, page.response.status);
+  }
+
+  const robots = await fetch(base + "/robots.txt");
+  const robotsText = await robots.text();
+  assert(robots.ok, "robots.txt failed with " + robots.status);
+  assert(
+    robotsText.includes("https://savemingo.com/sitemap.xml"),
+    "robots.txt does not reference canonical sitemap",
+  );
+  console.log("PASS robots.txt", robots.status);
+
+  const sitemap = await fetch(base + "/sitemap.xml");
+  const sitemapText = await sitemap.text();
+  assert(sitemap.ok, "sitemap.xml failed with " + sitemap.status);
+  assert(
+    sitemapText.includes("https://savemingo.com/instagram-downloader"),
+    "sitemap.xml is missing Instagram downloader canonical URL",
+  );
+  assert(
+    sitemapText.includes("https://savemingo.com/instagram-reels-downloader"),
+    "sitemap.xml is missing Reels canonical URL",
+  );
+  console.log("PASS sitemap.xml", sitemap.status);
+
+  const manifest = await fetch(base + "/manifest.webmanifest");
+  const manifestData = await manifest.json();
+  assert(manifest.ok, "manifest failed with " + manifest.status);
+  assert(manifestData.name === "SaveMingo", "manifest name is incorrect");
+  assert(manifestData.start_url === "/", "manifest start_url is incorrect");
+  console.log("PASS manifest", manifest.status);
+
+  const missing = await fetch(base + "/this-page-should-not-exist-smoke", {
+    redirect: "manual",
+  });
+  const missingHtml = await missing.text();
+  assert(missing.status === 404, "Missing page should return 404");
+  assert(
+    missingHtml.includes("This page wandered off"),
+    "Custom 404 content is missing",
+  );
+  console.log("PASS 404", missing.status);
 
   const health = await jsonRequest("/api/health");
   assert(health.response.ok, "/api/health failed with " + health.response.status);
@@ -244,11 +329,11 @@ async function main() {
     deliveryRequestId,
   );
 
-  console.log("ALL CLOUDFLARE RUNTIME SMOKE TESTS PASSED");
+  console.log("ALL CLOUDFLARE LAUNCH-RUNTIME TESTS PASSED");
 }
 
 main().catch((error) => {
-  console.error("CLOUDFLARE RUNTIME SMOKE FAILED");
+  console.error("CLOUDFLARE LAUNCH-RUNTIME SMOKE FAILED");
   console.error(error instanceof Error ? error.stack : error);
   process.exit(1);
 });

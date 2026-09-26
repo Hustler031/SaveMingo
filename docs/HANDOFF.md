@@ -1,41 +1,39 @@
 # Handoff
 
 ## Current milestone
-**SM-006 — SEO + analytics**
+**SM-007 — Launch readiness**
 
 ## Branch
-`chatgpt/SM-006-seo-analytics`
+`chatgpt/SM-007-launch-readiness`
 
-## Starting point
-Cloudflare Worker is live and has passed runtime smoke tests for:
-- homepage
-- health
-- public Reel
-- public carousel
-- partial media streaming
+## Completed before this milestone
+- Cloudflare Worker migration
+- reliability hardening
+- live Reel resolver
+- live carousel resolver
+- live media streaming
+- SEO landing-page cluster
+- sitemap / robots / canonicals
+- GA4-ready event instrumentation
+- Search Console verification hook
+- legal and informational pages
 
-The custom domain is not attached yet.
+## SM-007 scope
+- production SEO runtime assertions
+- sitemap/robots runtime assertions
+- custom 404 runtime assertion
+- web manifest
+- favicon/icon
+- final launch checklist
 
-## SM-006 work
-- Instagram SEO landing-page cluster
-- unique metadata and canonicals
-- sitemap.xml and robots.txt
-- how-to content page
-- About / Privacy / Terms / Copyright
-- 404 page
-- internal linking
-- GA4-ready optional analytics loader
-- Search Console verification env hook
-- product funnel event instrumentation
+## External steps after merge
+- custom-domain Cloudflare route
+- GA4 property / Measurement ID
+- Search Console domain property / verification
+- sitemap submission
 
-## External account dependency
-GA4 and Search Console remain unconfigured until the user connects those services. The site must remain fully functional without analytics IDs.
+## GSC Wizard
+GSC Wizard is installed for post-domain Search Console/GA4 reporting. Use it once the `savemingo.com` property exists and Google has access to the launched domain.
 
-## Important privacy rule
-Do not send the pasted Instagram URL, signed CDN URL, request ID, or other potentially sensitive values as analytics event parameters.
-
-## Next after SM-006
-- verify generated SEO routes in Cloudflare preview
-- connect GA4
-- connect Search Console
-- custom-domain launch audit
+## Domain rule
+Do not move `savemingo.com` until the SM-007 Worker runtime audit passes.
