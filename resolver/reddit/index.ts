@@ -15,6 +15,10 @@ let cachedAnonymousSession:
     }
   | undefined;
 
+export function __resetRedditAnonymousSessionForTests() {
+  cachedAnonymousSession = undefined;
+}
+
 type RedditVideo = {
   fallback_url?: string;
   height?: number;
