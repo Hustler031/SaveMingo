@@ -12,70 +12,45 @@ Supporting line: **Save it. Keep it.**
 - **SM-003 — Instagram resolver foundation: LIVE VERIFIED**
 - **SM-004 — Photo + carousel + download delivery: COMPLETE**
 - **SM-005 — Reliability / monitoring hardening: COMPLETE**
-- **SM-005C — Cloudflare migration trial: LIVE VERIFIED**
+- **SM-005C — Cloudflare migration: WORKER LIVE; main-branch build handoff still being stabilized**
+- **SM-006 — SEO + analytics: IN PROGRESS**
 
 ## Version
 `0.4.0`
 
 ## Infrastructure
 - GitHub: `Hustler031/SaveMingo`
-- Migration branch: `chatgpt/SM-005C-cloudflare`
-- Primary hosting target: Cloudflare Workers
-- Cloudflare Worker: `savemingo`
-- Verified Worker URL: `https://savemingo.ashabup0.workers.dev`
-- Vercel project: `save-mingo` retained as rollback
-- Vercel project ID: `prj_e7MsyDZdG6Jp29NfRLpz6gYbMcrb`
-- Custom domain `savemingo.com`: **not cut over**
+- Active development branch: `chatgpt/SM-006-seo-analytics`
+- Primary runtime: Cloudflare Workers
+- Worker URL: `https://savemingo.ashabup0.workers.dev`
+- Vercel retained as rollback
+- Custom domain `savemingo.com`: not cut over
 - Database: not required
-- Instagram credentials: not required
 
-## Cloudflare migration proof
-- official vinext initializer: PASS
-- vinext compatibility scan: acceptable
-- locked dependency install: PASS
-- TypeScript: PASS
-- ESLint: PASS
-- unit tests: PASS
-- Next.js fallback build: PASS
-- Cloudflare/vinext build: PASS
-- Cloudflare deployment: PASS
-- GitHub-to-Cloudflare integration: PASS
+## SM-006 scope
+- distinct Instagram search-intent landing pages
+- how-to guide content
+- sitemap + robots
+- canonical metadata
+- about/privacy/terms/copyright
+- 404 experience
+- internal links
+- optional GA4 loader
+- Search Console verification hook
+- downloader funnel events
 
-## Cloudflare runtime smoke proof
-Executed from GitHub Actions against the public Worker URL:
-- homepage: `200`
-- `/api/health`: healthy, version `0.4.0`
-- `/api/health/resolver`: healthy
-- invalid URL: `SM-URL-001`
-- public Reel: resolved as `reel`, 1 video item
-- public carousel: resolved as `carousel`, 2 media items
-- media delivery: `206 Partial Content`, `video/mp4`
-- SaveMingo request IDs present throughout
+## Funnel events
+- `paste_clicked`
+- `resolve_started`
+- `resolve_success`
+- `resolve_failed`
+- `download_clicked`
 
-The reusable smoke workflow is:
-`.github/workflows/cloudflare-runtime-smoke.yml`
+No pasted Instagram URL is intentionally attached to analytics events.
 
-## Reliability
-- structured operational events
-- request IDs
-- best-effort per-instance rate limiting
-- resolver/media timeouts
-- media CDN allow-list
-- signed-CDN retry diagnostics
-- request-size protection
-- health endpoints
+## External setup still pending
+- Google Analytics property / Measurement ID
+- Google Search Console property / verification
+- custom-domain launch
 
-## Known audit item
-Single-photo normalization remains unit-verified; a stable independent live single-photo fixture remains pending.
-
-## Next actions
-1. Merge PR #7 after final checks are green.
-2. Change Cloudflare production branch from `chatgpt/SM-005C-cloudflare` back to `main`.
-3. Verify the resulting main-branch Worker deployment with the runtime smoke.
-4. Keep Vercel available as rollback.
-5. Start **SM-006 — SEO + analytics**.
-6. Do not move `savemingo.com` until launch review is complete.
-
-
-## Main Cloudflare deployment retrigger
-After Cloudflare production branch control was switched from the migration branch to `main`, a no-op documentation commit was pushed intentionally to trigger a fresh production build from the settled `main` configuration.
+The code must build and work without those IDs.

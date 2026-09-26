@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { ResultCard } from "@/components/downloader/ResultCard";
+import { trackEvent } from "@/lib/analytics/events";
 import type {
   DownloaderPhase,
   DownloaderUiError,
@@ -46,20 +47,22 @@ export function Downloader({ compact = false }: DownloaderProps) {
   }
 
   async function pasteFromClipboard() {
+    trackEvent("paste_clicked");
+
     try {
       const text = await navigator.clipboard.readText();
       setUrl(text.trim());
       setState({ phase: "idle" });
     } catch {
-      setState({
-        phase: "error",
-        error: {
-          code: "SM-UI-401",
-          message:
-            "Clipboard access was blocked. Paste the Instagram link manually.",
-          requestId: createClientRequestId(),
-        },
-      });
+      const error = {
+        code: "SM-UI-401" as const,
+        message:
+          "Clipboard access was blocked. Paste the Instagram link manually.",
+        requestId: createClientRequestId(),
+      };
+
+      trackEvent("resolve_failed", { error_code: error.code });
+      setState({ phase: "error", error });
     }
   }
 
@@ -72,6 +75,7 @@ export function Downloader({ compact = false }: DownloaderProps) {
     const validated = validateInstagramUrl(url);
 
     if (!validated.ok) {
+      trackEvent("resolve_failed", { error_code: validated.code });
       setState({
         phase: "error",
         error: {
@@ -82,6 +86,10 @@ export function Downloader({ compact = false }: DownloaderProps) {
       });
       return;
     }
+
+    trackEvent("resolve_started", {
+      content_type: validated.contentType,
+    });
 
     setUrl(validated.normalizedUrl);
     setState({ phase: "resolving" });
@@ -100,6 +108,11 @@ export function Downloader({ compact = false }: DownloaderProps) {
       const payload = (await response.json()) as ResolveResponse;
 
       if (!payload.success) {
+        trackEvent("resolve_failed", {
+          error_code: payload.error.code,
+          content_type: validated.contentType,
+        });
+
         setState({
           phase: "error",
           error: {
@@ -111,11 +124,18 @@ export function Downloader({ compact = false }: DownloaderProps) {
         return;
       }
 
+      trackEvent("resolve_success", {
+        content_type: payload.contentType,
+        media_count: payload.media.length,
+      });
+
       setState({
         phase: "success",
         result: payload,
       });
     } catch {
+      trackEvent("resolve_failed", { error_code: "SM-SRV-301" });
+
       setState({
         phase: "error",
         error: {

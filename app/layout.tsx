@@ -1,18 +1,32 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@/components/Analytics";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
+const googleVerification =
+  process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined;
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://savemingo.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "SaveMingo — Save anything you find online",
     template: "%s | SaveMingo",
   },
   description:
-    "SaveMingo is a clean, fast downloader for public social media content. Save it. Keep it.",
+    "SaveMingo is a clean, fast downloader for supported public social media content. Save it. Keep it.",
   applicationName: "SaveMingo",
+  verification: googleVerification
+    ? {
+        google: googleVerification,
+      }
+    : undefined,
+  robots: {
+    index: true,
+    follow: true,
+  },
   openGraph: {
     type: "website",
-    url: "https://savemingo.com",
+    url: SITE_URL,
     siteName: "SaveMingo",
     title: "SaveMingo — Save anything you find online",
     description: "Save it. Keep it.",
@@ -29,7 +43,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Analytics />
+        {children}
+      </body>
     </html>
   );
 }
