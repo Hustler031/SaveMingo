@@ -8,7 +8,7 @@ export type AnalyticsEventName =
   | "download_clicked";
 
 export type AnalyticsEventParams = {
-  content_type?: string;
+  content_type?: string;\n  platform?: string;
   error_code?: string;
   media_count?: number;
   landing_page?: string;
