@@ -38,7 +38,9 @@ export function safeMediaFilenameBase(raw: string | null) {
   const value = raw
     .normalize("NFKD")
     .replace(/[^a-zA-Z0-9._-]+/g, "-")
-    .replace(/^\.+/, "")
+    // Remove traversal/hidden-file style punctuation from the beginning after
+    // unsafe characters have already been normalized into separators.
+    .replace(/^[._-]+/, "")
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
 
