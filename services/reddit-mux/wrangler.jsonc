@@ -31,5 +31,8 @@
         "RedditMuxContainer"
       ]
     }
-  ]
+  ],
+  "observability": {
+    "enabled": true
+  }
 }
