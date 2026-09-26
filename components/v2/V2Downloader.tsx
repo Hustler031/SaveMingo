@@ -221,7 +221,7 @@ export function V2Downloader() {
         )}
 
         {state.phase === "success" && state.result && (
-          <V2ResultCard result={state.result} />
+          <V2ResultCard key={state.result.requestId} result={state.result} />
         )}
       </div>
     </div>
