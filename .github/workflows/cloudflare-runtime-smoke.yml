@@ -1,0 +1,32 @@
+name: Cloudflare Runtime Smoke
+
+on:
+  push:
+    branches:
+      - "chatgpt/SM-005C-cloudflare"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SAVEMINGO_BASE_URL: https://savemingo.ashabup0.workers.dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Wait briefly for Worker rollout
+        run: sleep 10
+
+      - name: Run Cloudflare runtime smoke
+        run: node scripts/cloudflare-runtime-smoke.mjs
