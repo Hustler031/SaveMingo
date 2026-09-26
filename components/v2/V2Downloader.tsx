@@ -148,7 +148,7 @@ export function V2Downloader() {
         onSubmit={submit}
         className="rounded-[24px] border border-[var(--v2-border)] bg-[var(--v2-surface)] p-2.5 shadow-[var(--v2-shadow)] sm:p-3"
       >
-        <div className="flex flex-col gap-2.5 sm:flex-row">
+        <div className="flex flex-col gap-3">
           <label htmlFor="v2-media-url" className="sr-only">
             Instagram link
           </label>
@@ -166,7 +166,7 @@ export function V2Downloader() {
                 setUrl(event.target.value);
                 resetFeedback();
               }}
-              placeholder="Paste an Instagram link"
+              placeholder="Paste a supported public link"
               className="h-14 min-w-0 flex-1 bg-transparent px-2.5 text-[15px] font-medium text-[var(--v2-text)] outline-none placeholder:text-[var(--v2-muted)]"
             />
             <button
@@ -181,7 +181,7 @@ export function V2Downloader() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="flex h-14 items-center justify-center gap-2 rounded-[17px] bg-[var(--v2-accent)] px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--v2-bg)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 sm:min-w-40"
+            className="mx-auto flex h-12 w-full max-w-[220px] items-center justify-center gap-2 rounded-[15px] bg-[var(--v2-accent)] px-6 text-sm font-black text-white transition hover:-translate-y-0.5 hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--v2-bg)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
           >
             {isBusy ? (
               <>
