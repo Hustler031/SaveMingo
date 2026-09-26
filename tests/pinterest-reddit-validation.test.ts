@@ -31,6 +31,18 @@ describe("Pinterest and Reddit URL validation", () => {
     });
   });
 
+  it("accepts the Reddit subreddit share-link format", () => {
+    expect(
+      validateSupportedUrl(
+        "https://www.reddit.com/r/aww/s/nMEhJAPgdZ",
+      ),
+    ).toMatchObject({
+      ok: true,
+      platform: "reddit",
+      contentType: "post",
+    });
+  });
+
   it("accepts a redd.it short URL", () => {
     expect(validateSupportedUrl("https://redd.it/abc123")).toMatchObject({
       ok: true,
