@@ -110,3 +110,54 @@ V2 preview routes:
 - `/v2-preview/instagram-carousel-downloader`
 
 Local review remains isolated from production. Use `START_SAVEMINGO_V2.cmd`.
+
+
+## SM-010 handoff — X as isolated second downloader
+
+Current branch:
+`chatgpt/SM-010-platform-isolation-x`
+
+This branch is stacked on:
+`chatgpt/SM-009-ui-v2-preview`
+
+Current status:
+**source implementation complete; CI green; real public X runtime smoke still required before production approval.**
+
+Architecture:
+```text
+/api/v1/resolve
+   ↓
+platform validation/detection
+   ↓
+server adapter registry
+   ├─ instagram adapter → existing Instagram resolver
+   └─ x adapter         → X syndication resolver
+   ↓
+normalized media response
+   ↓
+shared result UI / media delivery
+```
+
+Isolation guarantees now encoded in code/docs/tests:
+- platform adapters do not depend on each other's resolvers;
+- X uses `SM-X-xxx` errors while Instagram keeps `SM-IG-xxx`;
+- X has its own timeout/response-size policy;
+- health is available independently per platform;
+- media CDN roots are scoped per platform and cross-platform redirects are blocked;
+- shared API/result UI consumes the normalized contract.
+
+X preview:
+`http://localhost:3000/v2-preview/x-downloader`
+
+Local helper:
+`START_SAVEMINGO_X.cmd`
+
+Before production:
+1. run the branch locally;
+2. verify one real public X video post;
+3. verify one real public X photo or multi-photo post;
+4. click actual download, not only resolve;
+5. verify optional Preview;
+6. recheck an Instagram Reel and carousel on the same branch;
+7. only then mark X live-verified and proceed toward production integration.
+
