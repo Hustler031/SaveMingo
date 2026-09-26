@@ -30,10 +30,14 @@ function statusForError(code: SaveMingoErrorCode) {
       return 400;
     case ERROR_CODES.INSTAGRAM_PRIVATE:
     case ERROR_CODES.X_PRIVATE:
+    case ERROR_CODES.PINTEREST_PRIVATE:
       return 403;
     case ERROR_CODES.INSTAGRAM_NOT_FOUND:
     case ERROR_CODES.X_NOT_FOUND:
+    case ERROR_CODES.PINTEREST_NOT_FOUND:
       return 404;
+    case ERROR_CODES.PINTEREST_ACCESS_REQUIRED:
+      return 503;
     case ERROR_CODES.API_PAYLOAD_TOO_LARGE:
       return 413;
     case ERROR_CODES.API_RATE_LIMITED:
@@ -187,7 +191,7 @@ export async function POST(request: Request) {
     const result = failure(
       requestId,
       ERROR_CODES.INVALID_URL,
-      "Paste a supported public Instagram or X link to continue.",
+      "Paste a supported public Instagram, X, or configured Pinterest link to continue.",
     );
 
     logOperationalEvent("resolve-api", "warn", "resolve.rejected", {

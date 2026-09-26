@@ -14,6 +14,7 @@ import {
 } from "@/lib/reliability/rate-limit";
 import { createRequestId } from "@/lib/request-id";
 import { APP_VERSION } from "@/lib/system";
+import type { Platform } from "@/lib/downloader/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,14 +62,21 @@ function errorResponse(
 function requestHeaders(
   range: string | null,
   includeReferer: boolean,
-  platform: "instagram" | "x",
+  platform: Platform,
 ) {
   return {
     Accept: "video/*,image/*,application/octet-stream;q=0.8,*/*;q=0.1",
     "Accept-Language": "en-US,en;q=0.8",
     "User-Agent": USER_AGENT,
     ...(includeReferer
-      ? { Referer: platform === "instagram" ? "https://www.instagram.com/" : "https://x.com/" }
+      ? {
+          Referer:
+            platform === "instagram"
+              ? "https://www.instagram.com/"
+              : platform === "x"
+                ? "https://x.com/"
+                : "https://www.pinterest.com/",
+        }
       : {}),
     ...(range ? { Range: range } : {}),
   };
@@ -261,19 +269,30 @@ export async function GET(request: Request) {
     );
   }
 
-  const platformLabel = sourcePlatform === "instagram" ? "Instagram" : "X";
+  const platformLabel =
+    sourcePlatform === "instagram"
+      ? "Instagram"
+      : sourcePlatform === "x"
+        ? "X"
+        : "Pinterest";
   const resolverFailureCode =
     sourcePlatform === "instagram"
       ? ERROR_CODES.INSTAGRAM_RESOLVER_FAILED
-      : ERROR_CODES.X_RESOLVER_FAILED;
+      : sourcePlatform === "x"
+        ? ERROR_CODES.X_RESOLVER_FAILED
+        : ERROR_CODES.PINTEREST_RESOLVER_FAILED;
   const upstreamChangedCode =
     sourcePlatform === "instagram"
       ? ERROR_CODES.INSTAGRAM_UPSTREAM_CHANGED
-      : ERROR_CODES.X_UPSTREAM_CHANGED;
+      : sourcePlatform === "x"
+        ? ERROR_CODES.X_UPSTREAM_CHANGED
+        : ERROR_CODES.PINTEREST_UPSTREAM_CHANGED;
   const mediaUnavailableCode =
     sourcePlatform === "instagram"
       ? ERROR_CODES.INSTAGRAM_MEDIA_UNAVAILABLE
-      : ERROR_CODES.X_MEDIA_UNAVAILABLE;
+      : sourcePlatform === "x"
+        ? ERROR_CODES.X_MEDIA_UNAVAILABLE
+        : ERROR_CODES.PINTEREST_MEDIA_UNAVAILABLE;
 
   const upstream = await fetchAllowedMedia(
     source,

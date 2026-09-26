@@ -20,6 +20,10 @@ export const RELIABILITY_POLICY = {
     fetchTimeoutMs: 10_000,
     maxJsonBytes: 2_000_000,
   },
+  pinterest: {
+    fetchTimeoutMs: 10_000,
+    maxJsonBytes: 2_000_000,
+  },
 } as const;
 
 export type RateLimitScope = "resolve" | "media";

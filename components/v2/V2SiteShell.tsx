@@ -19,6 +19,18 @@ type V2ThemeStyle = CSSProperties & {
   "--v2-shadow": string;
 };
 
+const xTools = [
+  ["/v2-preview/twitter-video-downloader", "Video Downloader"],
+  ["/v2-preview/twitter-gif-downloader", "GIF Downloader"],
+  ["/v2-preview/twitter-image-downloader", "Image Downloader"],
+] as const;
+
+const pinterestTools = [
+  ["/v2-preview/pinterest-video-downloader", "Video Downloader"],
+  ["/v2-preview/pinterest-image-downloader", "Image Downloader"],
+  ["/v2-preview/pinterest-gif-downloader", "GIF Downloader"],
+] as const;
+
 const instagramTools = [
   ["/v2-preview/instagram-reels-downloader", "Reels Downloader"],
   ["/v2-preview/instagram-video-downloader", "Video Downloader"],
@@ -30,10 +42,15 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [dark, setDark] = useState(false);
   const [instagramMenuOpen, setInstagramMenuOpen] = useState(false);
+  const [xMenuOpen, setXMenuOpen] = useState(false);
+  const [pinterestMenuOpen, setPinterestMenuOpen] = useState(false);
 
   const homeActive = pathname === "/v2-preview";
   const instagramActive = pathname.startsWith("/v2-preview/instagram");
-  const xActive = pathname.startsWith("/v2-preview/x");
+  const xActive =
+    pathname.startsWith("/v2-preview/x") ||
+    pathname.startsWith("/v2-preview/twitter-");
+  const pinterestActive = pathname.startsWith("/v2-preview/pinterest");
 
   const themeStyle: V2ThemeStyle = dark
     ? {
@@ -111,7 +128,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
           aria-label="Primary navigation"
           className="border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/82"
         >
-          <div className="mx-auto flex h-[48px] w-full max-w-6xl items-center gap-1 px-3 sm:px-6 lg:px-8">
+          <div className="mx-auto flex h-[48px] w-full max-w-6xl items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none] sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden">
             <Link
               href="/v2-preview"
               className={[
@@ -189,20 +206,105 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
               )}
             </div>
 
-            <Link
-              href="/v2-preview/x-downloader"
-              className={[
-                "relative rounded-lg px-3 py-2 text-xs font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
-                xActive
-                  ? "text-[var(--v2-text)]"
-                  : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
-              ].join(" ")}
-            >
-              X / Twitter
-              {xActive && (
-                <span className="absolute inset-x-3 -bottom-[7px] h-0.5 rounded-full bg-[var(--v2-accent)]" />
+            <div className="relative flex shrink-0 items-center">
+              <Link
+                href="/v2-preview/x-downloader"
+                className={[
+                  "relative rounded-l-lg py-2 pl-3 pr-2 text-xs font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
+                  xActive
+                    ? "text-[var(--v2-text)]"
+                    : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
+                ].join(" ")}
+              >
+                X / Twitter
+                {xActive && (
+                  <span className="absolute left-3 right-0 -bottom-[7px] h-0.5 rounded-full bg-[var(--v2-accent)]" />
+                )}
+              </Link>
+              <button
+                type="button"
+                onClick={() => setXMenuOpen((current) => !current)}
+                aria-expanded={xMenuOpen}
+                aria-haspopup="menu"
+                aria-label="Open X downloader menu"
+                className="flex h-8 w-8 items-center justify-center rounded-r-lg text-[var(--v2-muted)] transition hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]"
+              >
+                <ChevronIcon open={xMenuOpen} />
+              </button>
+              {xMenuOpen && (
+                <div
+                  role="menu"
+                  className="fixed left-1/2 top-[116px] z-50 w-56 -translate-x-1/2 overflow-hidden rounded-2xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-1.5 shadow-[var(--v2-shadow)] sm:absolute sm:left-0 sm:top-[42px] sm:translate-x-0"
+                >
+                  <Link
+                    href="/v2-preview/x-downloader"
+                    className="block rounded-xl px-3 py-2.5 text-xs font-black hover:bg-[var(--v2-surface-2)]"
+                  >
+                    X / Twitter Downloader
+                  </Link>
+                  <div className="my-1 h-px bg-[var(--v2-border)]" />
+                  {xTools.map(([href, label]) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className="block rounded-xl px-3 py-2 text-xs font-bold text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </div>
               )}
-            </Link>
+            </div>
+
+            <div className="relative flex shrink-0 items-center">
+              <Link
+                href="/v2-preview/pinterest-downloader"
+                className={[
+                  "relative rounded-l-lg py-2 pl-3 pr-2 text-xs font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
+                  pinterestActive
+                    ? "text-[var(--v2-text)]"
+                    : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
+                ].join(" ")}
+              >
+                Pinterest
+                {pinterestActive && (
+                  <span className="absolute left-3 right-0 -bottom-[7px] h-0.5 rounded-full bg-[var(--v2-accent)]" />
+                )}
+              </Link>
+              <button
+                type="button"
+                onClick={() => setPinterestMenuOpen((current) => !current)}
+                aria-expanded={pinterestMenuOpen}
+                aria-haspopup="menu"
+                aria-label="Open Pinterest downloader menu"
+                className="flex h-8 w-8 items-center justify-center rounded-r-lg text-[var(--v2-muted)] transition hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]"
+              >
+                <ChevronIcon open={pinterestMenuOpen} />
+              </button>
+              {pinterestMenuOpen && (
+                <div
+                  role="menu"
+                  className="fixed left-1/2 top-[116px] z-50 w-56 -translate-x-1/2 overflow-hidden rounded-2xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-1.5 shadow-[var(--v2-shadow)] sm:absolute sm:left-0 sm:top-[42px] sm:translate-x-0"
+                >
+                  <Link
+                    href="/v2-preview/pinterest-downloader"
+                    className="block rounded-xl px-3 py-2.5 text-xs font-black hover:bg-[var(--v2-surface-2)]"
+                  >
+                    Pinterest Downloader
+                  </Link>
+                  <div className="my-1 h-px bg-[var(--v2-border)]" />
+                  {pinterestTools.map(([href, label]) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      className="block rounded-xl px-3 py-2 text-xs font-bold text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </nav>
       </header>
@@ -210,7 +312,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
       <div className="relative z-10">{children}</div>
 
       <footer className="relative z-10 border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/45">
-        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-[1.2fr_1fr_0.8fr] sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-2 sm:px-6 lg:grid-cols-[1.2fr_1fr_0.8fr_0.8fr] lg:px-8">
           <div>
             <div className="flex items-center gap-2">
               <Image
@@ -246,8 +348,21 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
             </p>
             <div className="mt-3 grid gap-2 text-xs font-bold text-[var(--v2-muted)]">
               <Link href="/v2-preview/x-downloader">X Downloader</Link>
-              <span>Videos</span>
-              <span>Photos & GIFs</span>
+              <Link href="/v2-preview/twitter-video-downloader">Videos</Link>
+              <Link href="/v2-preview/twitter-gif-downloader">GIFs</Link>
+              <Link href="/v2-preview/twitter-image-downloader">Images</Link>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
+              Pinterest
+            </p>
+            <div className="mt-3 grid gap-2 text-xs font-bold text-[var(--v2-muted)]">
+              <Link href="/v2-preview/pinterest-downloader">Pinterest Downloader</Link>
+              <Link href="/v2-preview/pinterest-video-downloader">Videos</Link>
+              <Link href="/v2-preview/pinterest-image-downloader">Images</Link>
+              <Link href="/v2-preview/pinterest-gif-downloader">GIFs</Link>
             </div>
           </div>
         </div>
@@ -255,7 +370,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
         <div className="border-t border-[var(--v2-border)]">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-5 text-[10px] text-[var(--v2-muted)] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
             <span>Public links only.</span>
-            <span>Not affiliated with Instagram, Meta, X, or Twitter.</span>
+            <span>Not affiliated with Instagram, Meta, X, Twitter, or Pinterest.</span>
           </div>
         </div>
       </footer>

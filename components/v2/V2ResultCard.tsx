@@ -94,7 +94,12 @@ export function V2ResultCard({ result }: Props) {
           </div>
 
           <span className="rounded-full border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-3 py-1.5 text-[10px] font-black capitalize text-[var(--v2-muted)]">
-            {result.platform === "instagram" ? "Instagram" : "X"} {result.contentType}
+            {result.platform === "instagram"
+              ? "Instagram"
+              : result.platform === "x"
+                ? "X"
+                : "Pinterest"}{" "}
+            {result.contentType}
           </span>
         </div>
 
@@ -144,7 +149,11 @@ export function V2ResultCard({ result }: Props) {
                   true,
                 )}
                 alt={
-                  (result.platform === "instagram" ? "Instagram" : "X") +
+                  (result.platform === "instagram"
+                    ? "Instagram"
+                    : result.platform === "x"
+                      ? "X"
+                      : "Pinterest") +
                   " " +
                   selected.type +
                   " preview " +

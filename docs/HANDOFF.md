@@ -161,3 +161,44 @@ Before production:
 6. recheck an Instagram Reel and carousel on the same branch;
 7. only then mark X live-verified and proceed toward production integration.
 
+
+
+## SM-011 — X search-intent pages + Pinterest official-access module
+
+Status: **SOURCE COMPLETE / CI GREEN / PINTEREST ACCESS PENDING**
+
+Owner reported the SM-010 X downloader working locally.
+
+X search-intent preview pages:
+- `/v2-preview/x-downloader`
+- `/v2-preview/twitter-video-downloader`
+- `/v2-preview/twitter-gif-downloader`
+- `/v2-preview/twitter-image-downloader`
+
+The pages target distinct current intents rather than brand-spelling duplicates. They remain noindex while the V2 preview is under review.
+
+Pinterest:
+- isolated Pinterest platform detector, validation, adapter, resolver, errors, reliability policy and health endpoint;
+- resolver uses the official Pinterest API only;
+- no Pinterest page scraping fallback;
+- `PINTEREST_ACCESS_TOKEN` is optional and never committed;
+- Pinterest stays `disabled` / **API setup** until approved API access is configured and live media is verified;
+- Pinterest preview pages:
+  - `/v2-preview/pinterest-downloader`
+  - `/v2-preview/pinterest-video-downloader`
+  - `/v2-preview/pinterest-image-downloader`
+  - `/v2-preview/pinterest-gif-downloader`
+
+SEO rule:
+- create only materially distinct media-intent pages;
+- do not create separate near-identical X/Twitter brand-spelling pages;
+- preview pages remain noindex until the matching capability is verified;
+- titles/H1/internal links use actual search-language while copy remains user-first.
+
+Verification:
+- typecheck: pass;
+- lint: pass;
+- tests: pass;
+- Next.js build: pass;
+- Cloudflare/vinext build: pass.
+
