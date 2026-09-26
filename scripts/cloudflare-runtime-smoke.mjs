@@ -70,8 +70,19 @@ function assertSeo(html, path, expectedTitleFragment) {
 async function assertLiveGaMeasurement() {
   const response = await fetch(base + "/", { redirect: "follow" });
   const html = await response.text();
-  const matches = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/g)];
-  const scriptUrls = [...new Set(matches.map((match) => match[1]))];
+  const matches = [...html.matchAll(/(?:src|href)=["']([^"']+)["']/g)];
+  const scriptUrls = [
+    ...new Set(
+      matches
+        .map((match) => match[1].replaceAll("&amp;", "&"))
+        .filter(
+          (value) =>
+            value.includes("_next") ||
+            /\.(?:js|mjs)(?:\?|$)/i.test(value) ||
+            value.includes("chunks"),
+        ),
+    ),
+  ];
 
   let found = html.includes("G-ZXK1PRVH6X");
 
