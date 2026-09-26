@@ -326,3 +326,47 @@ Production requirements after local success:
 - verify `/api/health/reddit-mux`;
 - only then promote "Reddit Video Downloader with Sound" as a production capability.
 
+## SM-014 handoff — launch consolidation
+
+Current branch:
+`chatgpt/SM-014-launch-audit`
+
+Do not merge the old stacked PRs individually. This branch started from the
+selected SM-013 stack and is the consolidation branch intended for `main`.
+
+Production mux target:
+```text
+savemingo Worker
+  -> private REDDIT_MUX Service Binding
+  -> savemingo-reddit-mux Worker
+  -> RedditMuxContainer (Node + FFmpeg)
+```
+
+Deployment order is strict: downstream mux Worker/Container first, then the
+main Worker. Cloudflare rejects a Service Binding deploy when its target Worker
+does not yet exist.
+
+The mux Worker is intentionally private (`workers_dev: false`), so Cloudflare
+production does not require a shared mux secret. Local/non-Cloudflare fallback
+can still use the existing bearer-token mode.
+
+Real production mux verification command after deployment:
+```text
+cd services/reddit-mux
+SAVEMINGO_BASE_URL=https://<production-host> npm run smoke:production
+```
+
+That test resolves known Reddit share fixtures, requires a separate-audio DASH
+result, downloads the merged MP4 through the main Worker, verifies the
+Cloudflare-container response header, and uses FFmpeg `volumedetect` to reject
+a silent output.
+
+Before final launch:
+- get green typecheck/lint/tests/Next/vinext/container CI;
+- deploy mux target;
+- run all platform regressions;
+- keep unverified platform SEO pages noindex;
+- merge the single consolidation PR;
+- repeat verification from fresh `main`;
+- then cut over/verify custom domain and submit sitemap/indexing.
+
