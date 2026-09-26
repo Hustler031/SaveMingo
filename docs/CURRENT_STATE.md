@@ -54,3 +54,7 @@ Single-photo normalization remains unit-verified; a stable independent live sing
 
 ## Hosting decision rule
 Cloudflare becomes primary only if real resolver and media-stream tests pass from the Workers network. Vercel remains rollback until then.
+
+
+## Cloudflare build trigger
+A fresh branch commit was pushed after Cloudflare production branch control was changed to `chatgpt/SM-005C-cloudflare`. This is intentional so Cloudflare creates a new build from the vinext-enabled branch rather than retrying the old main-branch build.
