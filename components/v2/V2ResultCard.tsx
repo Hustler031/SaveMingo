@@ -64,7 +64,9 @@ function redditAudioStatus(item: MediaAsset, platform: ResolveSuccess["platform"
       return {
         label: "Sound detected in source",
         detail:
-          "Reddit reports audio separately from the video track. Current SaveMingo download may be silent until audio merging is enabled.",
+          item.merge?.strategy === "dash-audio"
+            ? "Reddit stores audio separately. SaveMingo can merge the audio and video into one MP4 before download."
+            : "Reddit reports audio separately from the video track, but a merge-ready DASH source was not available for this post.",
       };
     case "none":
       return {
@@ -83,11 +85,18 @@ export function V2ResultCard({ result }: Props) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
+  const [muxState, setMuxState] = useState<"idle" | "merging" | "error">("idle");
+  const [muxError, setMuxError] = useState<string | null>(null);
   const hasMultiple = result.media.length > 1;
   const selected = result.media[selectedIndex] ?? result.media[0];
   const audioStatus = selected
     ? redditAudioStatus(selected, result.platform)
     : null;
+  const canMuxReddit =
+    result.platform === "reddit" &&
+    selected?.type === "video" &&
+    selected.audioStatus === "separate" &&
+    selected.merge?.strategy === "dash-audio";
 
   function trackSingleDownload() {
     trackEvent("download_clicked", {
@@ -113,6 +122,92 @@ export function V2ResultCard({ result }: Props) {
       }
     }
   }
+
+  async function downloadRedditWithSound() {
+    if (!canMuxReddit || !selected.merge) return;
+
+    trackEvent("download_clicked", {
+      content_type: result.contentType,
+      media_count: result.media.length,
+    });
+
+    setMuxState("merging");
+    setMuxError(null);
+    setDownloadNotice(null);
+
+    try {
+      const response = await fetch("/api/v1/reddit/mux", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          videoUrl: selected.url,
+          manifestUrl: selected.merge.manifestUrl,
+          fileName:
+            mediaName(
+              result.platform,
+              result.contentType,
+              selectedIndex,
+            ) + "-with-sound",
+        }),
+      });
+
+      if (!response.ok) {
+        let message =
+          "Sound merging is temporarily unavailable. You can still download the video-only file.";
+
+        try {
+          const payload = (await response.json()) as {
+            error?: {
+              message?: string;
+            };
+          };
+
+          message = payload.error?.message ?? message;
+        } catch {
+          // Keep the safe fallback message.
+        }
+
+        setMuxState("error");
+        setMuxError(message);
+        return;
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+
+      anchor.href = objectUrl;
+      anchor.download =
+        mediaName(
+          result.platform,
+          result.contentType,
+          selectedIndex,
+        ) + "-with-sound.mp4";
+      anchor.rel = "noopener";
+
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+
+      window.setTimeout(() => {
+        URL.revokeObjectURL(objectUrl);
+      }, 15_000);
+
+      setMuxState("idle");
+      setMuxError(null);
+      setDownloadNotice(
+        "Video and audio were merged into one MP4. Download started.",
+      );
+    } catch {
+      setMuxState("error");
+      setMuxError(
+        "Sound merging could not be reached. You can still download the video-only file.",
+      );
+    }
+  }
+
 
   function downloadAll() {
     trackEvent("download_clicked", {
@@ -194,6 +289,37 @@ export function V2ResultCard({ result }: Props) {
               <StackIcon />
               Download all {result.media.length}
             </button>
+          ) : canMuxReddit ? (
+            <>
+              <button
+                type="button"
+                onClick={downloadRedditWithSound}
+                disabled={muxState === "merging"}
+                className="flex h-12 w-full max-w-[260px] items-center justify-center gap-2 rounded-[15px] bg-[var(--v2-accent)] px-5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:brightness-95 disabled:cursor-wait disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
+              >
+                {muxState === "merging" ? (
+                  <SpinnerIcon />
+                ) : (
+                  <SoundDownloadIcon />
+                )}
+                {muxState === "merging"
+                  ? "Merging video + sound…"
+                  : "Download video with sound"}
+              </button>
+
+              <a
+                href={mediaHref(
+                  selected.url,
+                  result.platform,
+                  result.contentType,
+                  selectedIndex,
+                )}
+                onClick={trackSingleDownload}
+                className="mt-2.5 text-xs font-black text-[var(--v2-muted)] underline decoration-[var(--v2-border)] underline-offset-4 transition hover:text-[var(--v2-text)]"
+              >
+                Download video only
+              </a>
+            </>
           ) : (
             <a
               href={mediaHref(selected.url, result.platform, result.contentType, 0)}
@@ -203,6 +329,12 @@ export function V2ResultCard({ result }: Props) {
               <DownloadIcon />
               Download {selected.type === "video" ? "video" : "photo"}
             </a>
+          )}
+
+          {muxError && (
+            <p className="mt-3 max-w-md text-center text-xs font-bold leading-5 text-red-500">
+              {muxError}
+            </p>
           )}
 
           {downloadNotice && (
@@ -433,6 +565,53 @@ function EyeIcon() {
         strokeLinejoin="round"
       />
       <circle cx="10" cy="10" r="2.2" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+function SoundDownloadIcon() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
+      <path
+        d="M3.5 8h3L10 5v10l-3.5-3h-3V8Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12.5 7.2a4 4 0 0 1 0 5.6M14.8 5a7 7 0 0 1 0 10"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M10 2v3m0 10v3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        opacity=".55"
+      />
+    </svg>
+  );
+}
+
+function SpinnerIcon() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4 animate-spin" fill="none" aria-hidden="true">
+      <circle
+        cx="10"
+        cy="10"
+        r="7"
+        stroke="currentColor"
+        strokeWidth="2"
+        opacity=".25"
+      />
+      <path
+        d="M17 10a7 7 0 0 0-7-7"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
