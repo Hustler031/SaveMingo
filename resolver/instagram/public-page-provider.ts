@@ -4,17 +4,31 @@ import type {
   MediaAsset,
 } from "@/lib/downloader/types";
 import { isInstagramHost } from "@/lib/downloader/validation";
-import { parseInstagramPage } from "@/resolver/instagram/parse";
+import {
+  parseInstagramPage,
+  type ParsedInstagramPage,
+} from "@/resolver/instagram/parse";
 
 const MAX_REDIRECTS = 3;
 const MAX_HTML_BYTES = 5_000_000;
 const FETCH_TIMEOUT_MS = 10_000;
+
+type ProviderDebug = {
+  htmlLength: number;
+  shortcode?: string;
+  shortcodeFound: boolean;
+  hasVideoVersions: boolean;
+  hasDashManifest: boolean;
+  hasVideoUrl: boolean;
+  hasOgVideo: boolean;
+};
 
 type ProviderSuccess = {
   ok: true;
   provider: "public-page";
   contentType: InstagramContentType;
   media: MediaAsset[];
+  strategy?: ParsedInstagramPage["strategy"];
 };
 
 type ProviderFailure = {
@@ -33,6 +47,7 @@ type ProviderFailure = {
     | "no-video"
     | "upstream-changed"
     | "network";
+  debug?: ProviderDebug;
 };
 
 export type InstagramProviderResult = ProviderSuccess | ProviderFailure;
@@ -41,6 +56,7 @@ function failure(
   code: SaveMingoErrorCode,
   message: string,
   diagnostic: ProviderFailure["diagnostic"],
+  debug?: ProviderDebug,
 ): ProviderFailure {
   return {
     ok: false,
@@ -48,6 +64,40 @@ function failure(
     code,
     message,
     diagnostic,
+    debug,
+  };
+}
+
+function extractShortcode(sourceUrl: string) {
+  try {
+    const parts = new URL(sourceUrl).pathname
+      .split("/")
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    if (["reel", "reels", "p", "tv"].includes(parts[0] ?? "")) {
+      return parts[1];
+    }
+
+    if (parts[0] === "share" && ["reel", "p"].includes(parts[1] ?? "")) {
+      return parts[2];
+    }
+  } catch {
+    return undefined;
+  }
+
+  return undefined;
+}
+
+function buildDebug(html: string, shortcode?: string): ProviderDebug {
+  return {
+    htmlLength: html.length,
+    shortcode,
+    shortcodeFound: shortcode ? html.includes(shortcode) : false,
+    hasVideoVersions: html.includes('"video_versions"'),
+    hasDashManifest: html.includes('"video_dash_manifest"'),
+    hasVideoUrl: html.includes('"video_url"'),
+    hasOgVideo: /property=["']og:video/i.test(html),
   };
 }
 
@@ -202,7 +252,9 @@ export async function resolveInstagramPublicPage(
     return fetched;
   }
 
-  const parsed = parseInstagramPage(fetched.html);
+  const shortcode = extractShortcode(sourceUrl);
+  const debug = buildDebug(fetched.html, shortcode);
+  const parsed = parseInstagramPage(fetched.html, shortcode);
 
   if (parsed.videoUrl) {
     const media: MediaAsset = {
@@ -220,6 +272,7 @@ export async function resolveInstagramPublicPage(
       provider: "public-page",
       contentType: requestedType === "reel" ? "reel" : "video",
       media: [media],
+      strategy: parsed.strategy,
     };
   }
 
@@ -228,6 +281,7 @@ export async function resolveInstagramPublicPage(
       ERROR_CODES.INSTAGRAM_MEDIA_UNAVAILABLE,
       "This post does not expose a single public video. Photo and carousel resolution comes next.",
       "no-video",
+      debug,
     );
   }
 
@@ -241,6 +295,7 @@ export async function resolveInstagramPublicPage(
       ERROR_CODES.INSTAGRAM_PRIVATE,
       "This Instagram content is not publicly accessible.",
       "access-denied",
+      debug,
     );
   }
 
@@ -248,5 +303,6 @@ export async function resolveInstagramPublicPage(
     ERROR_CODES.INSTAGRAM_UPSTREAM_CHANGED,
     "SaveMingo found the page but Instagram did not expose a usable public video.",
     "upstream-changed",
+    debug,
   );
 }
