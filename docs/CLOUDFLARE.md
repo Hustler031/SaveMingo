@@ -133,3 +133,54 @@ This proves:
 - request IDs survive the Cloudflare runtime path.
 
 The Vercel project remains available as rollback until post-launch stability is established.
+
+## SM-014 — Cloudflare Containers for Reddit sound mux
+
+Cloudflare Containers are the preferred production runtime for
+`services/reddit-mux/`. Render is not part of the launch architecture.
+
+Current Cloudflare requirements verified against the September 2026 official
+documentation:
+
+- Containers require the Workers Paid plan.
+- A Container application is declared with a container definition, Durable
+  Object binding, and `new_sqlite_classes` migration.
+- Container disk is ephemeral, which matches SaveMingo's temporary-media
+  requirement.
+- A Worker can call another private Worker through a Service Binding without a
+  public URL.
+- Service Binding targets must be deployed before the calling Worker.
+- Stateless Container routing currently uses a fixed instance count; built-in
+  autoscaling is not assumed.
+
+SaveMingo therefore deploys in this order:
+
+1. `savemingo-reddit-mux` Worker + Container;
+2. `savemingo` Worker with private `REDDIT_MUX` Service Binding;
+3. verify `/api/health/reddit-mux`;
+4. run the production Reddit audible-mux smoke;
+5. verify video-only fallback and all non-mux platform health.
+
+Configuration:
+
+- `services/reddit-mux/Dockerfile`
+- `services/reddit-mux/worker.mjs`
+- `services/reddit-mux/wrangler.jsonc`
+- root `worker/index.ts`
+- root `wrangler.jsonc`
+
+### Cost posture
+
+The launch profile uses two possible `basic` instances and sleeps idle
+instances after 30 seconds. FFmpeg uses stream copy, so CPU demand should be
+materially lower than transcoding. The Workers Paid plan includes a monthly
+allocation of Container memory, CPU, and disk before overage billing. Container
+usage and network egress must be watched after launch; do not raise instance
+count or file limits until real traffic justifies it.
+
+Official references:
+- https://developers.cloudflare.com/containers/
+- https://developers.cloudflare.com/containers/pricing/
+- https://developers.cloudflare.com/containers/configuration/wrangler/
+- https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/
+
