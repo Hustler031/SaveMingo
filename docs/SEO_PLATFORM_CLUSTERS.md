@@ -67,6 +67,30 @@ Current SaveMingo strategy:
 
 This lets the page match real user intent without making a false capability claim.
 
+## TikTok
+
+Cluster:
+- generic intent: `/tiktok-downloader`
+- video intent: `/tiktok-video-downloader`
+- photo intent: `/tiktok-photo-downloader`
+- slideshow intent: `/tiktok-slideshow-downloader`
+
+Strong search language includes:
+- **TikTok video downloader**;
+- **TikTok video downloader without watermark**;
+- TikTok photo downloader;
+- TikTok slideshow downloader;
+- TikTok MP3 / audio downloader.
+
+Current SaveMingo strategy:
+- support public video posts, photo posts/slideshows, and supported `vm.tiktok.com` / `vt.tiktok.com` short links first;
+- use a clean playback source when TikTok publicly exposes one;
+- do not claim SaveMingo removes a watermark that is already baked into a media file;
+- do not create or promote an MP3/audio page until SaveMingo has a real verified audio-only delivery path;
+- TikTok public-page hydration may change or be challenge-protected, so all TikTok extraction logic stays inside the TikTok adapter.
+
+Preview routes remain `noindex` until real TikTok video + slideshow runtime smoke passes.
+
 ## Internal linking
 
 Each platform main page links to its own subpages.
