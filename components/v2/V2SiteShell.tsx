@@ -161,7 +161,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
           aria-label="Primary navigation"
           className="border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/82"
         >
-          <div className="mx-auto flex h-[48px] w-full max-w-6xl items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none] sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden">
+          <div className="mx-auto flex h-[48px] w-full max-w-6xl items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none] sm:overflow-visible sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden">
             <Link
               href="/v2-preview"
               className={[
@@ -186,7 +186,6 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
               return (
                 <NavDropdown
                   key={key}
-                  menuKey={key}
                   menu={menu}
                   active={active}
                   open={openMenu === key}
@@ -199,6 +198,13 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
             })}
           </div>
         </nav>
+
+        {openMenu && (
+          <PlatformMenuPanel
+            menu={menus[openMenu]}
+            onNavigate={() => setOpenMenu(null)}
+          />
+        )}
       </header>
 
       <div className="relative z-10">{children}</div>
@@ -273,14 +279,12 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
 }
 
 function NavDropdown({
-  menuKey,
   menu,
   active,
   open,
   onToggle,
   onNavigate,
 }: {
-  menuKey: MenuKey;
   menu: (typeof menus)[MenuKey];
   active: boolean;
   open: boolean;
@@ -320,37 +324,45 @@ function NavDropdown({
       >
         <ChevronIcon open={open} />
       </button>
+    </div>
+  );
+}
 
-      {open && (
-        <div
-          role="menu"
-          className="absolute left-0 top-[42px] z-50 w-60 overflow-hidden rounded-2xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-1.5 shadow-[var(--v2-shadow)]"
+function PlatformMenuPanel({
+  menu,
+  onNavigate,
+}: {
+  menu: (typeof menus)[MenuKey];
+  onNavigate: () => void;
+}) {
+  return (
+    <div
+      role="menu"
+      className="absolute left-1/2 top-full z-50 w-[min(24rem,calc(100vw-1.5rem))] -translate-x-1/2 overflow-hidden rounded-2xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-1.5 shadow-[var(--v2-shadow)]"
+    >
+      <Link
+        href={menu.root}
+        onClick={onNavigate}
+        role="menuitem"
+        className="block rounded-xl px-3 py-2.5 text-xs font-black transition hover:bg-[var(--v2-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
+      >
+        {menu.label} Downloader
+        <span className="mt-0.5 block text-[10px] font-medium text-[var(--v2-muted)]">
+          {menu.hint}
+        </span>
+      </Link>
+      <div className="my-1 h-px bg-[var(--v2-border)]" />
+      {menu.items.map(([href, label]) => (
+        <Link
+          key={href}
+          href={href}
+          onClick={onNavigate}
+          role="menuitem"
+          className="block rounded-xl px-3 py-2 text-xs font-bold text-[var(--v2-muted)] transition hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
         >
-          <Link
-            href={menu.root}
-            onClick={onNavigate}
-            role="menuitem"
-            className="block rounded-xl px-3 py-2.5 text-xs font-black transition hover:bg-[var(--v2-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
-          >
-            {menu.label} Downloader
-            <span className="mt-0.5 block text-[10px] font-medium text-[var(--v2-muted)]">
-              {menu.hint}
-            </span>
-          </Link>
-          <div className="my-1 h-px bg-[var(--v2-border)]" />
-          {menu.items.map(([href, label]) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={onNavigate}
-              role="menuitem"
-              className="block rounded-xl px-3 py-2 text-xs font-bold text-[var(--v2-muted)] transition hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-      )}
+          {label}
+        </Link>
+      ))}
     </div>
   );
 }
