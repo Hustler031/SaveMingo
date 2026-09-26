@@ -13,6 +13,15 @@ function isPinterestHostname(hostname: string) {
   return value === "pinterest.com" || value.endsWith(".pinterest.com");
 }
 
+const REDDIT_HOSTS = new Set([
+  "reddit.com",
+  "www.reddit.com",
+  "old.reddit.com",
+  "np.reddit.com",
+  "redd.it",
+  "www.redd.it",
+]);
+
 const X_HOSTS = new Set([
   "x.com",
   "www.x.com",
@@ -30,6 +39,10 @@ export function isPinterestHost(hostname: string) {
   return isPinterestHostname(hostname);
 }
 
+export function isRedditHost(hostname: string) {
+  return REDDIT_HOSTS.has(hostname.toLowerCase());
+}
+
 export function isXHost(hostname: string) {
   return X_HOSTS.has(hostname.toLowerCase());
 }
@@ -41,6 +54,7 @@ export function detectPlatformFromUrl(rawValue: string): Platform | null {
     if (isInstagramHost(parsed.hostname)) return "instagram";
     if (isXHost(parsed.hostname)) return "x";
     if (isPinterestHost(parsed.hostname)) return "pinterest";
+    if (isRedditHost(parsed.hostname)) return "reddit";
 
     return null;
   } catch {
