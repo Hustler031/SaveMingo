@@ -33,18 +33,10 @@ function mediaHref(
 }
 
 export function V2ResultCard({ result }: Props) {
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const hasMultiple = result.media.length > 1;
   const selected = result.media[selectedIndex] ?? result.media[0];
-
-  function selectRelative(delta: number) {
-    setSelectedIndex((current) => {
-      const next = current + delta;
-      if (next < 0) return result.media.length - 1;
-      if (next >= result.media.length) return 0;
-      return next;
-    });
-  }
 
   function trackSingleDownload() {
     trackEvent("download_clicked", {
@@ -71,96 +63,136 @@ export function V2ResultCard({ result }: Props) {
     });
   }
 
+  function selectRelative(delta: number) {
+    setSelectedIndex((current) => {
+      const next = current + delta;
+      if (next < 0) return result.media.length - 1;
+      if (next >= result.media.length) return 0;
+      return next;
+    });
+  }
+
   return (
-    <section className="overflow-hidden rounded-[24px] border border-[var(--v2-border)] bg-[var(--v2-surface)] text-left shadow-[var(--v2-shadow)]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--v2-border)] px-4 py-4 sm:px-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
+    <section className="mx-auto max-w-3xl overflow-hidden rounded-[22px] border border-[var(--v2-border)] bg-[var(--v2-surface)] text-left shadow-[var(--v2-shadow)]">
+      <div className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
               Media ready
+            </div>
+            <h2 className="mt-1.5 text-xl font-black tracking-[-0.035em]">
+              {result.media.length} {result.media.length === 1 ? "item" : "items"} ready
+            </h2>
+            <p className="mt-1 text-sm text-[var(--v2-muted)]">
+              {hasMultiple
+                ? "Download everything now, or open Preview to inspect individual items."
+                : mediaDescription(selected)}
             </p>
           </div>
-          <h2 className="mt-1 text-lg font-black tracking-[-0.03em] sm:text-xl">
-            {result.media.length} {result.media.length === 1 ? "item" : "items"} found
-          </h2>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <span className="rounded-full border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-3 py-1.5 text-[11px] font-bold capitalize text-[var(--v2-muted)]">
+          <span className="rounded-full border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-3 py-1.5 text-[10px] font-black capitalize text-[var(--v2-muted)]">
             Instagram {result.contentType}
           </span>
-          {hasMultiple && (
-            <span className="rounded-full bg-[var(--v2-accent-soft)] px-3 py-1.5 text-[11px] font-black text-[var(--v2-accent-strong)]">
-              {selectedIndex + 1}/{result.media.length}
-            </span>
+        </div>
+
+        <div className="mt-5 flex flex-col items-center">
+          {hasMultiple ? (
+            <button
+              type="button"
+              onClick={downloadAll}
+              className="flex h-12 w-full max-w-[240px] items-center justify-center gap-2 rounded-[15px] bg-[var(--v2-accent)] px-5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
+            >
+              <StackIcon />
+              Download all {result.media.length}
+            </button>
+          ) : (
+            <a
+              href={mediaHref(selected.url, result.contentType, 0)}
+              onClick={trackSingleDownload}
+              className="flex h-12 w-full max-w-[240px] items-center justify-center gap-2 rounded-[15px] bg-[var(--v2-accent)] px-5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
+            >
+              <DownloadIcon />
+              Download {selected.type === "video" ? "video" : "photo"}
+            </a>
           )}
+
+          <button
+            type="button"
+            onClick={() => setPreviewOpen((current) => !current)}
+            className="mt-2.5 rounded-xl px-3 py-2 text-xs font-black text-[var(--v2-accent-strong)] transition hover:bg-[var(--v2-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
+          >
+            {previewOpen ? "Hide preview" : "Preview media"}
+          </button>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(290px,.65fr)]">
-        <div className="relative border-b border-[var(--v2-border)] bg-black lg:border-b-0 lg:border-r">
-          <div className="relative mx-auto aspect-[4/5] max-h-[650px] w-full sm:aspect-[5/4] lg:min-h-[560px] lg:aspect-auto">
-            <MediaPreview
-              item={selected}
-              href={mediaHref(
-                selected.url,
-                result.contentType,
-                selectedIndex,
-                true,
+      {previewOpen && (
+        <div className="border-t border-[var(--v2-border)]">
+          <div className="relative bg-black">
+            <div className="relative mx-auto aspect-[4/5] max-h-[590px] w-full sm:aspect-[16/10]">
+              <MediaPreview
+                item={selected}
+                href={mediaHref(
+                  selected.url,
+                  result.contentType,
+                  selectedIndex,
+                  true,
+                )}
+                alt={"Instagram " + selected.type + " preview " + (selectedIndex + 1)}
+              />
+
+              {hasMultiple && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => selectRelative(-1)}
+                    aria-label="Previous carousel item"
+                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/55 text-white backdrop-blur transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  >
+                    <ArrowIcon direction="left" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => selectRelative(1)}
+                    aria-label="Next carousel item"
+                    className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/55 text-white backdrop-blur transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  >
+                    <ArrowIcon direction="right" />
+                  </button>
+                </>
               )}
-              alt={"Instagram " + selected.type + " preview " + (selectedIndex + 1)}
-            />
-
-            {hasMultiple && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => selectRelative(-1)}
-                  aria-label="Previous carousel item"
-                  className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/55 text-white backdrop-blur transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                >
-                  <ArrowIcon direction="left" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => selectRelative(1)}
-                  aria-label="Next carousel item"
-                  className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/55 text-white backdrop-blur transition hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                >
-                  <ArrowIcon direction="right" />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        <aside className="flex min-w-0 flex-col p-4 sm:p-5">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
-              Selected media
-            </p>
-            <div className="mt-2 flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-xl font-black tracking-[-0.035em]">
-                  {selected.type === "video" ? "Video" : "Photo"} {selectedIndex + 1}
-                </h3>
-                <p className="mt-1 text-sm text-[var(--v2-muted)]">
-                  {mediaDescription(selected)}
-                </p>
-              </div>
-              <span className="rounded-lg bg-[var(--v2-surface-2)] px-2.5 py-1.5 text-[10px] font-black uppercase tracking-[0.08em] text-[var(--v2-muted)]">
-                {selected.type}
-              </span>
             </div>
           </div>
 
-          {hasMultiple && (
-            <div className="mt-5">
-              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
-                All items
-              </p>
-              <div className="mt-2.5 grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-4">
+          <div className="p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
+                  Preview
+                </p>
+                <h3 className="mt-1 text-lg font-black tracking-[-0.03em]">
+                  {selected.type === "video" ? "Video" : "Photo"} {selectedIndex + 1}
+                  {hasMultiple ? " of " + result.media.length : ""}
+                </h3>
+                <p className="mt-1 text-xs text-[var(--v2-muted)]">
+                  {mediaDescription(selected)}
+                </p>
+              </div>
+
+              {hasMultiple && (
+                <a
+                  href={mediaHref(selected.url, result.contentType, selectedIndex)}
+                  onClick={trackSingleDownload}
+                  className="shrink-0 rounded-xl border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-3 py-2 text-xs font-black transition hover:border-[var(--v2-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
+                >
+                  Download item
+                </a>
+              )}
+            </div>
+
+            {hasMultiple && (
+              <div className="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-7">
                 {result.media.map((item, index) => (
                   <button
                     key={item.id}
@@ -182,45 +214,15 @@ export function V2ResultCard({ result }: Props) {
                   </button>
                 ))}
               </div>
-            </div>
-          )}
-
-          <div className="mt-6 grid gap-2.5">
-            <a
-              href={mediaHref(selected.url, result.contentType, selectedIndex)}
-              onClick={trackSingleDownload}
-              className="flex h-12 items-center justify-center gap-2 rounded-[14px] bg-[var(--v2-accent)] px-4 text-sm font-black text-white transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--v2-surface)]"
-            >
-              <DownloadIcon />
-              Download {selected.type === "video" ? "video" : "photo"}
-            </a>
-
-            {hasMultiple && (
-              <button
-                type="button"
-                onClick={downloadAll}
-                className="flex h-12 items-center justify-center gap-2 rounded-[14px] border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-4 text-sm font-black transition hover:border-[var(--v2-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
-              >
-                <StackIcon />
-                Download all {result.media.length}
-              </button>
             )}
-          </div>
 
-          {hasMultiple && (
-            <p className="mt-2 text-[10px] leading-4 text-[var(--v2-muted)]">
-              Preview build: your browser may ask permission for multiple downloads.
-            </p>
-          )}
-
-          <div className="mt-auto pt-6">
-            <div className="border-t border-[var(--v2-border)] pt-4 text-[10px] leading-4 text-[var(--v2-muted)]">
+            <div className="mt-4 border-t border-[var(--v2-border)] pt-3 text-[10px] leading-4 text-[var(--v2-muted)]">
               <p>Media is streamed through SaveMingo without permanent storage.</p>
               <p className="mt-1 break-all font-mono">Request {result.requestId}</p>
             </div>
           </div>
-        </aside>
-      </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -253,7 +255,7 @@ function MediaPreview({
       alt={alt}
       fill
       unoptimized
-      sizes="(max-width: 1024px) 100vw, 65vw"
+      sizes="(max-width: 768px) 100vw, 768px"
       className="object-contain"
     />
   );
