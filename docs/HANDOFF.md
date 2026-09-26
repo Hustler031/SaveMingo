@@ -79,3 +79,34 @@ Local Windows helper:
 - launches the Next.js dev server and opens `http://localhost:3000/v2-preview`.
 
 Production remains untouched. Draft PR #15 remains the review gate.
+
+
+## SM-009 final navigation and polish pass
+
+Owner-reviewed direction applied on 2026-09-26:
+
+- homepage hero keeps **Save anything you** in primary text and **find online.** in the SaveMingo accent;
+- hero spacing tightened so the downloader stays high in the first viewport;
+- top navigation is simplified to **Home** and **Instagram**;
+- Home is emphasized and receives an active underline only on the homepage;
+- Instagram text links to the universal Instagram downloader;
+- the adjacent Instagram chevron opens a dropdown containing SEO-specific pages for Reels, Videos, Photos, and Carousels;
+- individual Instagram content types are no longer separate top-nav items;
+- homepage cards are platform-level rather than content-type-level;
+- Instagram is the only **Available** platform; future platform cards are visually muted and labelled **Coming soon** or **Planned**;
+- technical/developer-facing copy was replaced with user-facing product copy;
+- successful results remain download-first;
+- result card width was tightened and Preview is now a bordered secondary action with an eye icon;
+- Preview remains collapsed by default;
+- Instagram main page auto-detects the supported post type from the pasted link;
+- V2 preview now includes a dedicated Instagram Video SEO preview route.
+
+V2 preview routes:
+- `/v2-preview`
+- `/v2-preview/instagram-downloader`
+- `/v2-preview/instagram-reels-downloader`
+- `/v2-preview/instagram-video-downloader`
+- `/v2-preview/instagram-photo-downloader`
+- `/v2-preview/instagram-carousel-downloader`
+
+Local review remains isolated from production. Use `START_SAVEMINGO_V2.cmd`.
