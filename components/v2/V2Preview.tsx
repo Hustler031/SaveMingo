@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { V2Downloader } from "@/components/v2/V2Downloader";
 
 type V2ThemeStyle = CSSProperties & {
@@ -34,20 +34,8 @@ const steps = [
 export function V2Preview() {
   const [dark, setDark] = useState(false);
 
-  useEffect(() => {
-    const stored = window.localStorage.getItem("savemingo-v2-theme");
-    if (stored === "dark") setDark(true);
-  }, []);
-
   function toggleTheme() {
-    setDark((current) => {
-      const next = !current;
-      window.localStorage.setItem(
-        "savemingo-v2-theme",
-        next ? "dark" : "light",
-      );
-      return next;
-    });
+    setDark((current) => !current);
   }
 
   const themeStyle: V2ThemeStyle = dark
