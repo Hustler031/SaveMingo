@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { InstagramLandingPage } from "@/components/seo/InstagramLandingPage";
+import { V2InstagramToolPage } from "@/components/v2/V2InstagramToolPage";
 import { instagramSeoPages } from "@/lib/seo/instagram-pages";
 
 const page = instagramSeoPages.carousel;
@@ -16,5 +16,5 @@ export const metadata: Metadata = {
 };
 
 export default function InstagramCarouselDownloaderPage() {
-  return <InstagramLandingPage page={page} />;
+  return <V2InstagramToolPage kind="carousel" />;
 }
