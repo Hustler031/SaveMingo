@@ -320,7 +320,6 @@ export async function resolveReddit(sourceUrl: string) {
 
   if (!canonical.ok) {
     return {
-      ok: false as const,
       provider: "reddit-public-json",
       ...canonical,
     };
