@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Platform } from "@/lib/downloader/types";
 import { ERROR_CODES } from "@/lib/errors";
 import {
   extensionForContentType,
@@ -58,20 +59,64 @@ function errorResponse(
   );
 }
 
+function refererForPlatform(platform: Platform) {
+  switch (platform) {
+    case "instagram":
+      return "https://www.instagram.com/";
+    case "x":
+      return "https://x.com/";
+    case "pinterest":
+      return "https://www.pinterest.com/";
+    case "reddit":
+      return "https://www.reddit.com/";
+  }
+}
+
 function requestHeaders(
   range: string | null,
   includeReferer: boolean,
-  platform: "instagram" | "x",
+  platform: Platform,
 ) {
   return {
     Accept: "video/*,image/*,application/octet-stream;q=0.8,*/*;q=0.1",
     "Accept-Language": "en-US,en;q=0.8",
     "User-Agent": USER_AGENT,
-    ...(includeReferer
-      ? { Referer: platform === "instagram" ? "https://www.instagram.com/" : "https://x.com/" }
-      : {}),
+    ...(includeReferer ? { Referer: refererForPlatform(platform) } : {}),
     ...(range ? { Range: range } : {}),
   };
+}
+
+function platformDeliveryConfig(platform: Platform) {
+  switch (platform) {
+    case "instagram":
+      return {
+        label: "Instagram",
+        resolverFailureCode: ERROR_CODES.INSTAGRAM_RESOLVER_FAILED,
+        upstreamChangedCode: ERROR_CODES.INSTAGRAM_UPSTREAM_CHANGED,
+        mediaUnavailableCode: ERROR_CODES.INSTAGRAM_MEDIA_UNAVAILABLE,
+      };
+    case "x":
+      return {
+        label: "X",
+        resolverFailureCode: ERROR_CODES.X_RESOLVER_FAILED,
+        upstreamChangedCode: ERROR_CODES.X_UPSTREAM_CHANGED,
+        mediaUnavailableCode: ERROR_CODES.X_MEDIA_UNAVAILABLE,
+      };
+    case "pinterest":
+      return {
+        label: "Pinterest",
+        resolverFailureCode: ERROR_CODES.PINTEREST_RESOLVER_FAILED,
+        upstreamChangedCode: ERROR_CODES.PINTEREST_UPSTREAM_CHANGED,
+        mediaUnavailableCode: ERROR_CODES.PINTEREST_MEDIA_UNAVAILABLE,
+      };
+    case "reddit":
+      return {
+        label: "Reddit",
+        resolverFailureCode: ERROR_CODES.REDDIT_RESOLVER_FAILED,
+        upstreamChangedCode: ERROR_CODES.REDDIT_UPSTREAM_CHANGED,
+        mediaUnavailableCode: ERROR_CODES.REDDIT_MEDIA_UNAVAILABLE,
+      };
+  }
 }
 
 async function fetchAllowedMedia(
@@ -261,19 +306,11 @@ export async function GET(request: Request) {
     );
   }
 
-  const platformLabel = sourcePlatform === "instagram" ? "Instagram" : "X";
-  const resolverFailureCode =
-    sourcePlatform === "instagram"
-      ? ERROR_CODES.INSTAGRAM_RESOLVER_FAILED
-      : ERROR_CODES.X_RESOLVER_FAILED;
-  const upstreamChangedCode =
-    sourcePlatform === "instagram"
-      ? ERROR_CODES.INSTAGRAM_UPSTREAM_CHANGED
-      : ERROR_CODES.X_UPSTREAM_CHANGED;
-  const mediaUnavailableCode =
-    sourcePlatform === "instagram"
-      ? ERROR_CODES.INSTAGRAM_MEDIA_UNAVAILABLE
-      : ERROR_CODES.X_MEDIA_UNAVAILABLE;
+  const delivery = platformDeliveryConfig(sourcePlatform);
+  const platformLabel = delivery.label;
+  const resolverFailureCode = delivery.resolverFailureCode;
+  const upstreamChangedCode = delivery.upstreamChangedCode;
+  const mediaUnavailableCode = delivery.mediaUnavailableCode;
 
   const upstream = await fetchAllowedMedia(
     source,

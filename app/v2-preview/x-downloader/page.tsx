@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { V2XToolPage } from "@/components/v2/V2XToolPage";
+import { V2PlatformToolPage } from "@/components/v2/V2PlatformToolPage";
 
 export const metadata: Metadata = {
   title: "X / Twitter Downloader — SaveMingo V2 Preview",
-  description:
-    "Download supported public X or Twitter videos, GIFs, photos, and media posts with SaveMingo.",
+  description: "Download public X and Twitter videos, GIFs and images with SaveMingo. Paste a post link, no login required.",
   robots: { index: false, follow: false },
 };
 
 export default function Page() {
-  return <V2XToolPage />;
+  return <V2PlatformToolPage kind="x-all" />;
 }

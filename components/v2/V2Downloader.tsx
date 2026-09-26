@@ -27,6 +27,41 @@ function createClientRequestId() {
   return "sm_ui_" + raw.slice(0, 10).toUpperCase();
 }
 
+function platformCopy(platform: Platform | "auto") {
+  switch (platform) {
+    case "instagram":
+      return {
+        label: "Instagram link",
+        placeholder: "Paste an Instagram link",
+        checking: "Checking that this is a supported public Instagram link.",
+      };
+    case "x":
+      return {
+        label: "X post link",
+        placeholder: "Paste an X or Twitter post link",
+        checking: "Checking that this is a supported public X post link.",
+      };
+    case "pinterest":
+      return {
+        label: "Pinterest pin link",
+        placeholder: "Paste a Pinterest pin link",
+        checking: "Checking that this is a supported public Pinterest pin link.",
+      };
+    case "reddit":
+      return {
+        label: "Reddit post link",
+        placeholder: "Paste a Reddit post link",
+        checking: "Checking that this is a supported public Reddit post link.",
+      };
+    default:
+      return {
+        label: "Supported media link",
+        placeholder: "Paste an Instagram, X, Pinterest, or Reddit link",
+        checking: "Checking the platform and public link format.",
+      };
+  }
+}
+
 export function V2Downloader({
   platform = "auto",
 }: {
@@ -34,6 +69,7 @@ export function V2Downloader({
 }) {
   const [url, setUrl] = useState("");
   const [state, setState] = useState<DownloaderState>({ phase: "idle" });
+  const copy = platformCopy(platform);
 
   const isBusy = state.phase === "validating" || state.phase === "resolving";
   const canSubmit = useMemo(
@@ -158,11 +194,7 @@ export function V2Downloader({
       >
         <div className="flex flex-col gap-3">
           <label htmlFor="v2-media-url" className="sr-only">
-            {platform === "x"
-              ? "X post link"
-              : platform === "instagram"
-                ? "Instagram link"
-                : "Instagram or X link"}
+            {copy.label}
           </label>
 
           <div className="flex min-w-0 flex-1 items-center rounded-[17px] border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-3.5 transition focus-within:border-[var(--v2-accent)] focus-within:ring-2 focus-within:ring-[var(--v2-accent)]/15">
@@ -178,13 +210,7 @@ export function V2Downloader({
                 setUrl(event.target.value);
                 resetFeedback();
               }}
-              placeholder={
-                platform === "x"
-                  ? "Paste an X or Twitter post link"
-                  : platform === "instagram"
-                    ? "Paste an Instagram link"
-                    : "Paste an Instagram or X link"
-              }
+              placeholder={copy.placeholder}
               className="h-14 min-w-0 flex-1 bg-transparent px-2.5 text-[15px] font-medium text-[var(--v2-text)] outline-none placeholder:text-[var(--v2-muted)]"
             />
             <button
@@ -223,13 +249,7 @@ export function V2Downloader({
         {state.phase === "validating" && (
           <LoadingStatus
             title="Checking your link"
-            text={
-              platform === "x"
-                ? "Checking that this is a supported public X post link."
-                : platform === "instagram"
-                  ? "Checking that this is a supported public Instagram link."
-                  : "Checking the platform and public link format."
-            }
+            text={copy.checking}
           />
         )}
 
