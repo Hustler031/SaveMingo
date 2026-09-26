@@ -4,6 +4,25 @@ type ResultCardProps = {
   result: ResolveSuccess;
 };
 
+function downloadHref(
+  sourceUrl: string,
+  contentType: ResolveSuccess["contentType"],
+  index: number,
+) {
+  const name = [
+    "instagram",
+    contentType,
+    String(index + 1).padStart(2, "0"),
+  ].join("-");
+
+  const params = new URLSearchParams({
+    src: sourceUrl,
+    name,
+  });
+
+  return "/api/v1/media?" + params.toString();
+}
+
 export function ResultCard({ result }: ResultCardProps) {
   return (
     <section className="rounded-[28px] border border-neutral-200 bg-white p-5 text-left shadow-[var(--shadow)] sm:p-6">
@@ -44,13 +63,12 @@ export function ResultCard({ result }: ResultCardProps) {
                     .join(" · ") || "Available media"}
                 </p>
               </div>
+
               <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 rounded-xl bg-neutral-950 px-4 py-2.5 text-xs font-black text-white transition hover:bg-neutral-800"
+                href={downloadHref(item.url, result.contentType, index)}
+                className="shrink-0 rounded-xl bg-neutral-950 px-4 py-2.5 text-xs font-black text-white transition hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2"
               >
-                Open media
+                Download
               </a>
             </div>
           </article>
@@ -58,10 +76,7 @@ export function ResultCard({ result }: ResultCardProps) {
       </div>
 
       <div className="mt-4 flex flex-col gap-1 text-[11px] text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
-        <p>
-          Direct public media result. Guaranteed download delivery is a later
-          transport step.
-        </p>
+        <p>Media is streamed through SaveMingo without permanent storage.</p>
         <p className="font-mono">Request {result.requestId}</p>
       </div>
     </section>
