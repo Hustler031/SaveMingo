@@ -37,7 +37,8 @@ jobs:
 
       - name: Verify Reddit mux FFmpeg
         working-directory: services/reddit-mux
-        run: node --input-type=module -e "import ffmpeg from 'ffmpeg-static'; import { spawnSync } from 'node:child_process'; const result = spawnSync(ffmpeg, ['-version'], { stdio: 'inherit' }); process.exit(result.status ?? 1);"
+        run: |
+          node --input-type=module -e "import ffmpeg from 'ffmpeg-static'; import { spawnSync } from 'node:child_process'; const result = spawnSync(ffmpeg, ['-version'], { stdio: 'inherit' }); process.exit(result.status ?? 1);"
 
       - name: Typecheck
         run: npm run typecheck
