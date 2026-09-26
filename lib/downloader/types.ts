@@ -1,6 +1,6 @@
 import type { SaveMingoErrorCode } from "@/lib/errors";
 
-export type Platform = "instagram" | "x" | "pinterest" | "reddit";
+export type Platform = "instagram" | "x" | "pinterest" | "reddit" | "tiktok";
 
 export type InstagramContentType =
   | "reel"
@@ -35,11 +35,19 @@ export type RedditContentType =
   | "gif"
   | "unknown";
 
+export type TikTokContentType =
+  | "post"
+  | "video"
+  | "photo"
+  | "slideshow"
+  | "unknown";
+
 export type MediaContentType =
   | InstagramContentType
   | XContentType
   | PinterestContentType
-  | RedditContentType;
+  | RedditContentType
+  | TikTokContentType;
 
 export type AudioStatus = "included" | "separate" | "none" | "unknown";
 
