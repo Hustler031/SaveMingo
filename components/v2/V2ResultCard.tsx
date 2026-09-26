@@ -47,17 +47,69 @@ function platformLabel(platform: ResolveSuccess["platform"]) {
   }
 }
 
+function redditAudioStatus(item: MediaAsset, platform: ResolveSuccess["platform"]) {
+  if (platform !== "reddit" || item.type !== "video" || !item.audioStatus) {
+    return null;
+  }
+
+  switch (item.audioStatus) {
+    case "included":
+      return {
+        label: "Sound included",
+        detail: "This media source reports audio in the downloadable file.",
+      };
+    case "separate":
+      return {
+        label: "Sound detected in source",
+        detail:
+          "Reddit reports audio separately from the video track. Current SaveMingo download may be silent until audio merging is enabled.",
+      };
+    case "none":
+      return {
+        label: "No sound detected",
+        detail: "Reddit reports no audio for this source.",
+      };
+    case "unknown":
+      return {
+        label: "Sound status unknown",
+        detail: "Reddit did not provide a reliable audio flag for this source.",
+      };
+  }
+}
+
 export function V2ResultCard({ result }: Props) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
   const hasMultiple = result.media.length > 1;
   const selected = result.media[selectedIndex] ?? result.media[0];
+  const audioStatus = selected
+    ? redditAudioStatus(selected, result.platform)
+    : null;
 
   function trackSingleDownload() {
     trackEvent("download_clicked", {
       content_type: result.contentType,
       media_count: result.media.length,
     });
+
+    if (result.platform === "reddit" && selected?.type === "video") {
+      if (selected.audioStatus === "none") {
+        setDownloadNotice(
+          "Download started. No sound was detected in this Reddit source.",
+        );
+      } else if (selected.audioStatus === "separate") {
+        setDownloadNotice(
+          "Download started. Reddit reports a separate audio stream, so this current video file may be silent.",
+        );
+      } else if (selected.audioStatus === "unknown") {
+        setDownloadNotice(
+          "Download started. Reddit did not provide a reliable sound status for this source.",
+        );
+      } else {
+        setDownloadNotice(null);
+      }
+    }
   }
 
   function downloadAll() {
@@ -111,6 +163,25 @@ export function V2ResultCard({ result }: Props) {
           </span>
         </div>
 
+        {audioStatus && (
+          <div className="mt-4 rounded-2xl border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-4 py-3">
+            <div className="flex items-start gap-3">
+              <span
+                aria-hidden="true"
+                className="mt-0.5 text-base"
+              >
+                {selected.audioStatus === "none" ? "🔇" : "🔊"}
+              </span>
+              <div>
+                <p className="text-xs font-black">{audioStatus.label}</p>
+                <p className="mt-1 text-xs leading-5 text-[var(--v2-muted)]">
+                  {audioStatus.detail}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-5 flex flex-col items-center">
           {hasMultiple ? (
             <button
@@ -130,6 +201,12 @@ export function V2ResultCard({ result }: Props) {
               <DownloadIcon />
               Download {selected.type === "video" ? "video" : "photo"}
             </a>
+          )}
+
+          {downloadNotice && (
+            <p className="mt-3 max-w-md text-center text-xs leading-5 text-[var(--v2-muted)]">
+              {downloadNotice}
+            </p>
           )}
 
           <button
