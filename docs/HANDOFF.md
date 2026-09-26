@@ -207,3 +207,16 @@ Only after real fixture testing:
 - add production sitemap entries;
 - submit/index only verified pages.
 
+
+
+### SM-011 follow-up review notes
+
+Dropdown bug:
+- root cause was menu content living inside the horizontally scrollable nav container, which could clip the absolutely positioned menu;
+- fixed by rendering the active platform menu as a header-level overlay outside that overflow container.
+
+Reddit sound UX:
+- prefer warning **before** download rather than making the user discover a silent MP4 afterward;
+- also show an after-click notice for silent/separate/unknown audio states;
+- exact SEO intent is retained through **Reddit Video Downloader with Sound Check**;
+- do not change this to an unconditional "downloads with sound" promise until audio/video muxing is implemented and verified.
