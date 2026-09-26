@@ -34,6 +34,19 @@ function mediaHref(
   return "/api/v1/media?" + params.toString();
 }
 
+function platformLabel(platform: ResolveSuccess["platform"]) {
+  switch (platform) {
+    case "instagram":
+      return "Instagram";
+    case "x":
+      return "X";
+    case "pinterest":
+      return "Pinterest";
+    case "reddit":
+      return "Reddit";
+  }
+}
+
 export function V2ResultCard({ result }: Props) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -94,7 +107,7 @@ export function V2ResultCard({ result }: Props) {
           </div>
 
           <span className="rounded-full border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-3 py-1.5 text-[10px] font-black capitalize text-[var(--v2-muted)]">
-            {result.platform === "instagram" ? "Instagram" : "X"} {result.contentType}
+            {platformLabel(result.platform)} {result.contentType}
           </span>
         </div>
 
@@ -144,7 +157,7 @@ export function V2ResultCard({ result }: Props) {
                   true,
                 )}
                 alt={
-                  (result.platform === "instagram" ? "Instagram" : "X") +
+                  platformLabel(result.platform) +
                   " " +
                   selected.type +
                   " preview " +
