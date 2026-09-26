@@ -1,4 +1,4 @@
-import { ERROR_CODES, type SaveMingoErrorCode } from "@/lib/errors";
+import { ERROR_CODES, type SaveMingoErrorCode } from "@/lib/errors";\nimport { RELIABILITY_POLICY } from "@/lib/reliability/policy";
 import type {
   InstagramContentType,
   MediaAsset,
@@ -310,7 +310,7 @@ async function bootstrapAnonymousSession() {
     method: "GET",
     redirect: "follow",
     cache: "no-store",
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    signal: AbortSignal.timeout(RELIABILITY_POLICY.instagram.fetchTimeoutMs),
     headers: {
       Accept: "text/html,application/xhtml+xml",
       "Accept-Language": "en-US,en;q=0.8",
@@ -403,7 +403,7 @@ export async function resolveInstagramGraphql(
       method: "POST",
       redirect: "manual",
       cache: "no-store",
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(RELIABILITY_POLICY.instagram.fetchTimeoutMs),
       headers: {
         Accept: "*/*",
         "Accept-Language": "en-US,en;q=0.8",
