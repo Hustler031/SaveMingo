@@ -75,3 +75,7 @@ Single-photo normalization remains unit-verified; a stable independent live sing
 4. Keep Vercel available as rollback.
 5. Start **SM-006 — SEO + analytics**.
 6. Do not move `savemingo.com` until launch review is complete.
+
+
+## Main Cloudflare deployment retrigger
+After Cloudflare production branch control was switched from the migration branch to `main`, a no-op documentation commit was pushed intentionally to trigger a fresh production build from the settled `main` configuration.
