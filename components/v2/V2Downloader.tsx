@@ -166,7 +166,7 @@ export function V2Downloader() {
                 setUrl(event.target.value);
                 resetFeedback();
               }}
-              placeholder="Paste a supported public link"
+              placeholder="Paste an Instagram link"
               className="h-14 min-w-0 flex-1 bg-transparent px-2.5 text-[15px] font-medium text-[var(--v2-text)] outline-none placeholder:text-[var(--v2-muted)]"
             />
             <button
@@ -205,14 +205,14 @@ export function V2Downloader() {
         {state.phase === "validating" && (
           <LoadingStatus
             title="Checking your link"
-            text="Making sure this is a supported public Instagram URL."
+            text="Checking that this is a supported public Instagram link."
           />
         )}
 
         {state.phase === "resolving" && (
           <LoadingStatus
             title="Finding your media"
-            text="Resolving the public media and preparing the preview."
+            text="Finding the public media and preparing your download."
           />
         )}
 
