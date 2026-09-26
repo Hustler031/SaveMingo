@@ -14,7 +14,7 @@ import {
 } from "./lib.mjs";
 
 const PORT = Number.parseInt(process.env.PORT ?? "8788", 10);
-const TOKEN = process.env.MUX_SERVICE_TOKEN ?? "";
+const TOKEN = process.env.MUX_SERVICE_TOKEN ?? "";\nconst INTERNAL_ONLY = process.env.MUX_INTERNAL_ONLY === "1";
 const MAX_INPUT_BYTES = Number.parseInt(
   process.env.MUX_MAX_INPUT_BYTES ?? String(250 * 1024 * 1024),
   10,
