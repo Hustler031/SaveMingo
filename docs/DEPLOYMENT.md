@@ -2,36 +2,42 @@
 
 ## Environments
 1. Local
-2. Vercel deployment / preview
+2. Vercel Preview
 3. Custom-domain production
 
-## Current deployment
-- Project: `savemingo`
-- Verified URL: `https://save-mingo.vercel.app/`
-- Framework: Next.js
+## Vercel project
+- Project: `save-mingo`
+- Project ID: `prj_e7MsyDZdG6Jp29NfRLpz6gYbMcrb`
 - Git repository: `Hustler031/SaveMingo`
-- Production branch in Vercel: `main`
-- Custom domain `savemingo.com`: **not attached to this project yet**
+- Framework: Next.js
+- Production branch: `main`
+- Custom domain `savemingo.com`: **not attached to SaveMingo yet**
+
+## Verified SM-002 preview
+- Branch: `chatgpt/SM-002-product-ui`
+- Deployment ID: `dpl_FGnFSsnVnbRRwAnXhFWMRuw4gVoj`
+- Branch alias: `https://save-mingo-git-chatgpt-sm-002-product-ui-hustler031s-projects.vercel.app`
+- State: `READY`
+- CI: `PASS`
 
 ## Standard workflow
 
 ```text
 task branch
-→ CI
-→ Pull Request
-→ Vercel deployment/preview
-→ smoke test
-→ merge
-→ custom-domain production when release is approved
+→ GitHub CI
+→ Vercel Preview
+→ code/static audit
+→ interaction smoke test when required
+→ runtime error scan
+→ PR merge
+→ main deployment
+→ custom-domain production only at approved launch
 ```
 
-## Bootstrap exception
-SM-001 required creating the Vercel project after the initial source foundation existed on `main`. This did not constitute the public SaveMingo launch because `savemingo.com` remained untouched.
-
-All normal feature work after SM-001 must use branch/preview validation before custom-domain release.
+Vercel Git integration automatically creates branch previews. Canceled intermediate deployments during rapid sequential commits are expected; verification must target the final branch-head deployment.
 
 ## Secrets
 Configure secrets as deployment environment variables. Never commit them.
 
 ## Agent access
-The SaveMingo Vercel project currently exists in the authenticated browser session, but the ChatGPT Vercel connector does not yet have authorization to read it. Extend connector authorization before relying on connector-based Vercel logs/configuration for debugging.
+ChatGPT Vercel connector authorization now includes the SaveMingo project, so project/deployment/runtime logs can be inspected directly without browser automation.
