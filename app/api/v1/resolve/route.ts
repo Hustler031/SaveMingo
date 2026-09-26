@@ -7,6 +7,13 @@ import type {
 import { ERROR_CODES, type SaveMingoErrorCode } from "@/lib/errors";
 import { createRequestId } from "@/lib/request-id";
 import { validateInstagramUrl } from "@/lib/downloader/validation";
+import { logOperationalEvent } from "@/lib/observability";
+import { RELIABILITY_POLICY } from "@/lib/reliability/policy";
+import {
+  checkRequestRateLimit,
+  rateLimitHeaders,
+} from "@/lib/reliability/rate-limit";
+import { APP_VERSION } from "@/lib/system";
 import { resolveInstagram } from "@/resolver/instagram";
 
 export const runtime = "nodejs";
@@ -25,6 +32,8 @@ function statusForError(code: SaveMingoErrorCode) {
       return 403;
     case ERROR_CODES.INSTAGRAM_NOT_FOUND:
       return 404;
+    case ERROR_CODES.API_PAYLOAD_TOO_LARGE:
+      return 413;
     case ERROR_CODES.API_RATE_LIMITED:
       return 429;
     case ERROR_CODES.API_TIMEOUT:
@@ -38,12 +47,16 @@ function json(
   payload: ResolveResponse,
   status: number,
   requestId: string,
+  extraHeaders: Record<string, string> = {},
 ) {
   return NextResponse.json(payload, {
     status,
     headers: {
       "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
       "X-SaveMingo-Request-Id": requestId,
+      "X-SaveMingo-Version": APP_VERSION,
+      ...extraHeaders,
     },
   });
 }
@@ -63,32 +76,57 @@ function failure(
   };
 }
 
-function logResolve(
-  level: "info" | "warn" | "error",
-  data: Record<string, unknown>,
-) {
-  const entry = JSON.stringify({
-    service: "resolve-api",
-    ...data,
-  });
-
-  if (level === "error") {
-    console.error(entry);
-  } else if (level === "warn") {
-    console.warn(entry);
-  } else {
-    console.info(entry);
-  }
-}
-
 export async function POST(request: Request) {
   const requestId = createRequestId();
   const startedAt = Date.now();
+  const rateLimit = checkRequestRateLimit("resolve", request);
+  const limitHeaders = rateLimitHeaders(rateLimit);
 
-  let body: ResolveRequestBody;
+  if (!rateLimit.allowed) {
+    const result = failure(
+      requestId,
+      ERROR_CODES.API_RATE_LIMITED,
+      "Too many requests from this network. Try again shortly.",
+    );
+
+    logOperationalEvent("resolve-api", "warn", "resolve.rate_limited", {
+      requestId,
+      code: result.error.code,
+      durationMs: Date.now() - startedAt,
+    });
+
+    return json(result, 429, requestId, limitHeaders);
+  }
+
+  const declaredLength = Number.parseInt(
+    request.headers.get("content-length") ?? "0",
+    10,
+  );
+
+  if (
+    Number.isFinite(declaredLength) &&
+    declaredLength > RELIABILITY_POLICY.resolve.maxBodyBytes
+  ) {
+    const result = failure(
+      requestId,
+      ERROR_CODES.API_PAYLOAD_TOO_LARGE,
+      "The request body is larger than SaveMingo accepts.",
+    );
+
+    logOperationalEvent("resolve-api", "warn", "resolve.rejected", {
+      requestId,
+      code: result.error.code,
+      reason: "declared-body-too-large",
+      durationMs: Date.now() - startedAt,
+    });
+
+    return json(result, 413, requestId, limitHeaders);
+  }
+
+  let rawBody: string;
 
   try {
-    body = (await request.json()) as ResolveRequestBody;
+    rawBody = await request.text();
   } catch {
     const result = failure(
       requestId,
@@ -96,14 +134,48 @@ export async function POST(request: Request) {
       "Send a valid JSON request containing an Instagram URL.",
     );
 
-    logResolve("warn", {
-      event: "resolve.rejected",
+    return json(result, 400, requestId, limitHeaders);
+  }
+
+  if (
+    new TextEncoder().encode(rawBody).byteLength >
+    RELIABILITY_POLICY.resolve.maxBodyBytes
+  ) {
+    const result = failure(
+      requestId,
+      ERROR_CODES.API_PAYLOAD_TOO_LARGE,
+      "The request body is larger than SaveMingo accepts.",
+    );
+
+    logOperationalEvent("resolve-api", "warn", "resolve.rejected", {
       requestId,
       code: result.error.code,
+      reason: "body-too-large",
       durationMs: Date.now() - startedAt,
     });
 
-    return json(result, 400, requestId);
+    return json(result, 413, requestId, limitHeaders);
+  }
+
+  let body: ResolveRequestBody;
+
+  try {
+    body = JSON.parse(rawBody) as ResolveRequestBody;
+  } catch {
+    const result = failure(
+      requestId,
+      ERROR_CODES.INVALID_URL,
+      "Send a valid JSON request containing an Instagram URL.",
+    );
+
+    logOperationalEvent("resolve-api", "warn", "resolve.rejected", {
+      requestId,
+      code: result.error.code,
+      reason: "invalid-json",
+      durationMs: Date.now() - startedAt,
+    });
+
+    return json(result, 400, requestId, limitHeaders);
   }
 
   if (typeof body.url !== "string" || body.url.length > 2_048) {
@@ -113,14 +185,14 @@ export async function POST(request: Request) {
       "Paste a valid Instagram link to continue.",
     );
 
-    logResolve("warn", {
-      event: "resolve.rejected",
+    logOperationalEvent("resolve-api", "warn", "resolve.rejected", {
       requestId,
       code: result.error.code,
+      reason: "invalid-url-shape",
       durationMs: Date.now() - startedAt,
     });
 
-    return json(result, 400, requestId);
+    return json(result, 400, requestId, limitHeaders);
   }
 
   const validated = validateInstagramUrl(body.url);
@@ -132,14 +204,19 @@ export async function POST(request: Request) {
       validated.message,
     );
 
-    logResolve("warn", {
-      event: "resolve.rejected",
+    logOperationalEvent("resolve-api", "warn", "resolve.rejected", {
       requestId,
       code: result.error.code,
+      reason: "url-validation",
       durationMs: Date.now() - startedAt,
     });
 
-    return json(result, statusForError(result.error.code), requestId);
+    return json(
+      result,
+      statusForError(result.error.code),
+      requestId,
+      limitHeaders,
+    );
   }
 
   try {
@@ -155,8 +232,7 @@ export async function POST(request: Request) {
         providerResult.message,
       );
 
-      logResolve("warn", {
-        event: "resolve.failed",
+      logOperationalEvent("resolve-api", "warn", "resolve.failed", {
         requestId,
         provider: providerResult.provider,
         diagnostic: providerResult.diagnostic,
@@ -166,7 +242,12 @@ export async function POST(request: Request) {
         durationMs: Date.now() - startedAt,
       });
 
-      return json(result, statusForError(result.error.code), requestId);
+      return json(
+        result,
+        statusForError(result.error.code),
+        requestId,
+        limitHeaders,
+      );
     }
 
     const result: ResolveSuccess = {
@@ -178,8 +259,7 @@ export async function POST(request: Request) {
       media: providerResult.media,
     };
 
-    logResolve("info", {
-      event: "resolve.success",
+    logOperationalEvent("resolve-api", "info", "resolve.success", {
       requestId,
       provider: providerResult.provider,
       strategy: providerResult.strategy,
@@ -188,7 +268,7 @@ export async function POST(request: Request) {
       durationMs: Date.now() - startedAt,
     });
 
-    return json(result, 200, requestId);
+    return json(result, 200, requestId, limitHeaders);
   } catch (error) {
     const result = failure(
       requestId,
@@ -196,14 +276,13 @@ export async function POST(request: Request) {
       "SaveMingo hit an unexpected resolver error.",
     );
 
-    logResolve("error", {
-      event: "resolve.exception",
+    logOperationalEvent("resolve-api", "error", "resolve.exception", {
       requestId,
       code: result.error.code,
       errorName: error instanceof Error ? error.name : "UnknownError",
       durationMs: Date.now() - startedAt,
     });
 
-    return json(result, 502, requestId);
+    return json(result, 502, requestId, limitHeaders);
   }
 }
