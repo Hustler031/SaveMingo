@@ -171,3 +171,50 @@ V2 preview routes:
 - `/v2-preview/instagram-carousel-downloader`
 
 Local review remains isolated from production. Use `START_SAVEMINGO_V2.cmd`.
+
+
+## SM-010 — platform isolation + X downloader
+
+Status: **IMPLEMENTED / CI VERIFIED / LIVE X FIXTURE REVIEW PENDING**
+
+Branch:
+`chatgpt/SM-010-platform-isolation-x`
+
+Base:
+`chatgpt/SM-009-ui-v2-preview`
+
+Implemented:
+- `POST /api/v1/resolve` now detects the platform and dispatches through a server adapter registry;
+- Instagram remains behind its own adapter and existing resolver;
+- X/Twitter has a separate validation module, adapter, resolver, errors, timeout policy, health state, and tests;
+- supported X URL forms include public `x.com/.../status/...` and legacy `twitter.com/.../status/...` links;
+- X resolver uses the public X syndication response server-side and normalizes downloadable video, animated-GIF-as-video, photo, and multi-media results;
+- highest-bitrate MP4 is selected when explicit X MP4 bitrate variants are available;
+- X media delivery is restricted to `pbs.twimg.com` and `video.twimg.com`;
+- Instagram media delivery remains restricted to Meta/Instagram CDN roots;
+- redirects cannot cross from one platform's CDN allow-list into another platform's allow-list;
+- aggregate resolver health reports each platform independently;
+- per-platform health endpoints:
+  - `/api/health/platforms/instagram`
+  - `/api/health/platforms/x`
+- V2 homepage auto-detects Instagram or X links;
+- Instagram V2 pages remain Instagram-only;
+- X has a dedicated preview page at `/v2-preview/x-downloader`;
+- X is the second Available platform card after Instagram;
+- shared result UI now uses the detected platform for labels and filenames;
+- `START_SAVEMINGO_X.cmd` opens the X preview directly.
+
+Verification:
+- platform detection/validation tests: implemented;
+- adapter registry isolation tests: implemented;
+- X resolver video/photo/no-media tests: implemented;
+- per-platform media allow-list tests: implemented;
+- existing Instagram tests remain part of the same CI suite;
+- typecheck, lint, unit tests, Next.js build, and Cloudflare/vinext build pass on the implementation commits.
+
+Live-verification gate:
+- do not label X as production/live-verified until at least one real public X video post and one real public X photo/multi-media post are resolved and downloaded through the local or hosted SaveMingo runtime;
+- X syndication is an upstream public embed interface and is not a stable contractual API, so future X upstream changes must remain contained inside the X adapter.
+
+Production remains untouched while SM-009/SM-010 are under review.
+

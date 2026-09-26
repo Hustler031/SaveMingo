@@ -1,6 +1,6 @@
 import type { SaveMingoErrorCode } from "@/lib/errors";
 
-export type Platform = "instagram";
+export type Platform = "instagram" | "x";
 
 export type InstagramContentType =
   | "reel"
@@ -9,6 +9,16 @@ export type InstagramContentType =
   | "carousel"
   | "photo"
   | "unknown";
+
+export type XContentType =
+  | "post"
+  | "video"
+  | "photo"
+  | "carousel"
+  | "gif"
+  | "unknown";
+
+export type MediaContentType = InstagramContentType | XContentType;
 
 export type MediaAsset = {
   id: string;
@@ -24,7 +34,7 @@ export type ResolveSuccess = {
   success: true;
   requestId: string;
   platform: Platform;
-  contentType: InstagramContentType;
+  contentType: MediaContentType;
   sourceUrl: string;
   media: MediaAsset[];
 };

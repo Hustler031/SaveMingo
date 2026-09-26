@@ -5,16 +5,16 @@ import type {
   ResolveSuccess,
 } from "@/lib/downloader/types";
 import { ERROR_CODES, type SaveMingoErrorCode } from "@/lib/errors";
-import { createRequestId } from "@/lib/request-id";
-import { validateInstagramUrl } from "@/lib/downloader/validation";
 import { logOperationalEvent } from "@/lib/observability";
+import { getPlatformAdapter } from "@/lib/platforms/server-registry";
+import { validateSupportedUrl } from "@/lib/platforms/validation";
 import { RELIABILITY_POLICY } from "@/lib/reliability/policy";
 import {
   checkRequestRateLimit,
   rateLimitHeaders,
 } from "@/lib/reliability/rate-limit";
+import { createRequestId } from "@/lib/request-id";
 import { APP_VERSION } from "@/lib/system";
-import { resolveInstagram } from "@/resolver/instagram";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,8 +29,10 @@ function statusForError(code: SaveMingoErrorCode) {
     case ERROR_CODES.UNSUPPORTED_URL:
       return 400;
     case ERROR_CODES.INSTAGRAM_PRIVATE:
+    case ERROR_CODES.X_PRIVATE:
       return 403;
     case ERROR_CODES.INSTAGRAM_NOT_FOUND:
+    case ERROR_CODES.X_NOT_FOUND:
       return 404;
     case ERROR_CODES.API_PAYLOAD_TOO_LARGE:
       return 413;
@@ -128,13 +130,16 @@ export async function POST(request: Request) {
   try {
     rawBody = await request.text();
   } catch {
-    const result = failure(
+    return json(
+      failure(
+        requestId,
+        ERROR_CODES.INVALID_URL,
+        "Send a valid JSON request containing a supported public URL.",
+      ),
+      400,
       requestId,
-      ERROR_CODES.INVALID_URL,
-      "Send a valid JSON request containing an Instagram URL.",
+      limitHeaders,
     );
-
-    return json(result, 400, requestId, limitHeaders);
   }
 
   if (
@@ -165,7 +170,7 @@ export async function POST(request: Request) {
     const result = failure(
       requestId,
       ERROR_CODES.INVALID_URL,
-      "Send a valid JSON request containing an Instagram URL.",
+      "Send a valid JSON request containing a supported public URL.",
     );
 
     logOperationalEvent("resolve-api", "warn", "resolve.rejected", {
@@ -182,7 +187,7 @@ export async function POST(request: Request) {
     const result = failure(
       requestId,
       ERROR_CODES.INVALID_URL,
-      "Paste a valid Instagram link to continue.",
+      "Paste a supported public Instagram or X link to continue.",
     );
 
     logOperationalEvent("resolve-api", "warn", "resolve.rejected", {
@@ -195,7 +200,7 @@ export async function POST(request: Request) {
     return json(result, 400, requestId, limitHeaders);
   }
 
-  const validated = validateInstagramUrl(body.url);
+  const validated = validateSupportedUrl(body.url);
 
   if (!validated.ok) {
     const result = failure(
@@ -219,11 +224,10 @@ export async function POST(request: Request) {
     );
   }
 
+  const adapter = getPlatformAdapter(validated.platform);
+
   try {
-    const providerResult = await resolveInstagram(
-      validated.normalizedUrl,
-      validated.contentType,
-    );
+    const providerResult = await adapter.resolve(validated);
 
     if (!providerResult.ok) {
       const result = failure(
@@ -234,6 +238,7 @@ export async function POST(request: Request) {
 
       logOperationalEvent("resolve-api", "warn", "resolve.failed", {
         requestId,
+        platform: validated.platform,
         provider: providerResult.provider,
         diagnostic: providerResult.diagnostic,
         debug: providerResult.debug,
@@ -253,7 +258,7 @@ export async function POST(request: Request) {
     const result: ResolveSuccess = {
       success: true,
       requestId,
-      platform: "instagram",
+      platform: validated.platform,
       contentType: providerResult.contentType,
       sourceUrl: validated.normalizedUrl,
       media: providerResult.media,
@@ -261,6 +266,7 @@ export async function POST(request: Request) {
 
     logOperationalEvent("resolve-api", "info", "resolve.success", {
       requestId,
+      platform: result.platform,
       provider: providerResult.provider,
       strategy: providerResult.strategy,
       contentType: result.contentType,
@@ -272,12 +278,13 @@ export async function POST(request: Request) {
   } catch (error) {
     const result = failure(
       requestId,
-      ERROR_CODES.INSTAGRAM_RESOLVER_FAILED,
-      "SaveMingo hit an unexpected resolver error.",
+      adapter.unexpectedErrorCode,
+      "SaveMingo hit an unexpected platform resolver error.",
     );
 
     logOperationalEvent("resolve-api", "error", "resolve.exception", {
       requestId,
+      platform: validated.platform,
       code: result.error.code,
       errorName: error instanceof Error ? error.name : "UnknownError",
       durationMs: Date.now() - startedAt,

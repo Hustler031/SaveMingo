@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { ERROR_CODES } from "@/lib/errors";
 import {
   extensionForContentType,
-  isAllowedInstagramMediaUrl,
+  isAllowedMediaUrl,
+  mediaPlatformForUrl,
   safeMediaFilenameBase,
 } from "@/lib/media-url";
 import { logOperationalEvent } from "@/lib/observability";
@@ -57,12 +58,18 @@ function errorResponse(
   );
 }
 
-function requestHeaders(range: string | null, includeReferer: boolean) {
+function requestHeaders(
+  range: string | null,
+  includeReferer: boolean,
+  platform: "instagram" | "x",
+) {
   return {
     Accept: "video/*,image/*,application/octet-stream;q=0.8,*/*;q=0.1",
     "Accept-Language": "en-US,en;q=0.8",
     "User-Agent": USER_AGENT,
-    ...(includeReferer ? { Referer: "https://www.instagram.com/" } : {}),
+    ...(includeReferer
+      ? { Referer: platform === "instagram" ? "https://www.instagram.com/" : "https://x.com/" }
+      : {}),
     ...(range ? { Range: range } : {}),
   };
 }
@@ -73,13 +80,22 @@ async function fetchAllowedMedia(
   requestId: string,
 ) {
   let currentUrl = new URL(sourceUrl);
+  const sourcePlatform = mediaPlatformForUrl(sourceUrl);
+
+  if (!sourcePlatform) {
+    return {
+      ok: false as const,
+      reason: "blocked-url" as const,
+      host: currentUrl.hostname,
+    };
+  }
 
   for (
     let redirectCount = 0;
     redirectCount <= RELIABILITY_POLICY.media.maxRedirects;
     redirectCount++
   ) {
-    if (!isAllowedInstagramMediaUrl(currentUrl.toString())) {
+    if (mediaPlatformForUrl(currentUrl.toString()) !== sourcePlatform) {
       return {
         ok: false as const,
         reason: "blocked-url" as const,
@@ -97,7 +113,7 @@ async function fetchAllowedMedia(
         signal: AbortSignal.timeout(
           RELIABILITY_POLICY.media.fetchTimeoutMs,
         ),
-        headers: requestHeaders(range, true),
+        headers: requestHeaders(range, true, sourcePlatform),
       });
 
       if (response.status === 401 || response.status === 403) {
@@ -119,7 +135,7 @@ async function fetchAllowedMedia(
           signal: AbortSignal.timeout(
             RELIABILITY_POLICY.media.fetchTimeoutMs,
           ),
-          headers: requestHeaders(range, false),
+          headers: requestHeaders(range, false, sourcePlatform),
         });
       }
     } catch (error) {
@@ -151,7 +167,7 @@ async function fetchAllowedMedia(
       }
 
       const nextUrl = new URL(location, currentUrl);
-      if (!isAllowedInstagramMediaUrl(nextUrl.toString())) {
+      if (mediaPlatformForUrl(nextUrl.toString()) !== sourcePlatform) {
         return {
           ok: false as const,
           reason: "blocked-redirect" as const,
@@ -216,7 +232,7 @@ export async function GET(request: Request) {
   );
   const inline = requestUrl.searchParams.get("inline") === "1";
 
-  if (!source || !isAllowedInstagramMediaUrl(source)) {
+  if (!source || !isAllowedMediaUrl(source)) {
     logOperationalEvent("media-delivery", "warn", "media.rejected", {
       requestId,
       sourceHost: source ? mediaHost(source) : "missing",
@@ -232,6 +248,32 @@ export async function GET(request: Request) {
       limitHeaders,
     );
   }
+
+  const sourcePlatform = mediaPlatformForUrl(source);
+
+  if (!sourcePlatform) {
+    return errorResponse(
+      requestId,
+      400,
+      ERROR_CODES.INVALID_URL,
+      "This media URL is not allowed for SaveMingo delivery.",
+      limitHeaders,
+    );
+  }
+
+  const platformLabel = sourcePlatform === "instagram" ? "Instagram" : "X";
+  const resolverFailureCode =
+    sourcePlatform === "instagram"
+      ? ERROR_CODES.INSTAGRAM_RESOLVER_FAILED
+      : ERROR_CODES.X_RESOLVER_FAILED;
+  const upstreamChangedCode =
+    sourcePlatform === "instagram"
+      ? ERROR_CODES.INSTAGRAM_UPSTREAM_CHANGED
+      : ERROR_CODES.X_UPSTREAM_CHANGED;
+  const mediaUnavailableCode =
+    sourcePlatform === "instagram"
+      ? ERROR_CODES.INSTAGRAM_MEDIA_UNAVAILABLE
+      : ERROR_CODES.X_MEDIA_UNAVAILABLE;
 
   const upstream = await fetchAllowedMedia(
     source,
@@ -278,8 +320,8 @@ export async function GET(request: Request) {
     return errorResponse(
       requestId,
       502,
-      ERROR_CODES.INSTAGRAM_RESOLVER_FAILED,
-      "SaveMingo could not stream this media from Instagram.",
+      resolverFailureCode,
+      `SaveMingo could not stream this media from ${platformLabel}.`,
       limitHeaders,
     );
   }
@@ -311,8 +353,8 @@ export async function GET(request: Request) {
     return errorResponse(
       requestId,
       502,
-      ERROR_CODES.INSTAGRAM_UPSTREAM_CHANGED,
-      "Instagram returned an unexpected media format.",
+      upstreamChangedCode,
+      `${platformLabel} returned an unexpected media format.`,
       limitHeaders,
     );
   }
@@ -337,7 +379,7 @@ export async function GET(request: Request) {
     return errorResponse(
       requestId,
       413,
-      ERROR_CODES.INSTAGRAM_MEDIA_UNAVAILABLE,
+      mediaUnavailableCode,
       "This media item is larger than SaveMingo’s current delivery limit.",
       limitHeaders,
     );
