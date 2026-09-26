@@ -109,3 +109,34 @@ Hosted preview blockers observed on 2026-09-26:
 - Vercel status on commit `915467bc`: deployment rate limited for 24 hours after exceeding the free daily deployment limit;
 - Cloudflare Workers PR preview build for the same commit failed in the hosted preview environment even though local/CI `build:vinext` passes;
 - do not merge UI V2 before owner visual review and hosted runtime verification.
+
+
+## SM-009 V2 revision — download-first multi-page preview
+
+Updated from owner feedback on 2026-09-26.
+
+Design direction now:
+- restore the original SaveMingo message: **Save anything you find online.** / **Save it. Keep it.**
+- compact hero; tagline must not consume the screen;
+- homepage is a broad multi-tool hub, inspired by Grabivo's information architecture but not copied;
+- dedicated Instagram-specific pages live under the V2 preview route;
+- top navigation row added below the brand row;
+- the only upper-right utility button is the light/dark theme toggle;
+- primary Download action is centered;
+- successful results are **download-first**;
+- Preview is optional and collapsed by default;
+- carousel primary action is centered **Download all**; item preview/navigation appears only after the user opens Preview;
+- mobile layout remains first-class and uses horizontally scrollable top navigation rather than a second utility button/menu.
+
+V2 preview routes:
+- `/v2-preview`
+- `/v2-preview/instagram-downloader`
+- `/v2-preview/instagram-reels-downloader`
+- `/v2-preview/instagram-photo-downloader`
+- `/v2-preview/instagram-carousel-downloader`
+
+Local Windows helper:
+- `START_SAVEMINGO_V2.cmd`
+- launches the Next.js dev server and opens `http://localhost:3000/v2-preview`.
+
+Production remains untouched. Draft PR #15 remains the review gate.
