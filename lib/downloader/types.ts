@@ -1,6 +1,6 @@
 import type { SaveMingoErrorCode } from "@/lib/errors";
 
-export type Platform = "instagram" | "x" | "pinterest";
+export type Platform = "instagram" | "x" | "pinterest" | "reddit";
 
 export type InstagramContentType =
   | "reel"
@@ -25,10 +25,19 @@ export type PinterestContentType =
   | "gif"
   | "unknown";
 
+export type RedditContentType =
+  | "post"
+  | "video"
+  | "image"
+  | "gallery"
+  | "gif"
+  | "unknown";
+
 export type MediaContentType =
   | InstagramContentType
   | XContentType
-  | PinterestContentType;
+  | PinterestContentType
+  | RedditContentType;
 
 export type MediaAsset = {
   id: string;

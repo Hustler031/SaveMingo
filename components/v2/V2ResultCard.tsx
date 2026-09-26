@@ -98,7 +98,9 @@ export function V2ResultCard({ result }: Props) {
               ? "Instagram"
               : result.platform === "x"
                 ? "X"
-                : "Pinterest"}{" "}
+                : result.platform === "pinterest"
+                  ? "Pinterest"
+                  : "Reddit"}{" "}
             {result.contentType}
           </span>
         </div>
@@ -153,7 +155,9 @@ export function V2ResultCard({ result }: Props) {
                     ? "Instagram"
                     : result.platform === "x"
                       ? "X"
-                      : "Pinterest") +
+                      : result.platform === "pinterest"
+                        ? "Pinterest"
+                        : "Reddit") +
                   " " +
                   selected.type +
                   " preview " +

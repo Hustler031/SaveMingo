@@ -5,7 +5,8 @@ import { V2SiteShell } from "@/components/v2/V2SiteShell";
 const platforms = [
   {
     title: "Instagram Downloader",
-    description: "Download supported public Reels, videos, photos, and carousel posts.",
+    description:
+      "Download supported public Reels, videos, photos, and carousel posts.",
     href: "/v2-preview/instagram-downloader",
     mark: "IG",
     status: "Available",
@@ -13,11 +14,30 @@ const platforms = [
   },
   {
     title: "X / Twitter Downloader",
-    description: "Download supported public X videos, GIFs, photos, and multi-media posts.",
+    description:
+      "Download supported public X videos, GIFs, photos, and multi-media posts.",
     href: "/v2-preview/x-downloader",
     mark: "X",
     status: "Available",
     available: true,
+  },
+  {
+    title: "Pinterest Downloader",
+    description:
+      "Video, image and GIF Pin support is prepared for approved Pinterest API access.",
+    href: "/v2-preview/pinterest-downloader",
+    mark: "P",
+    status: "API setup",
+    available: false,
+  },
+  {
+    title: "Reddit Downloader",
+    description:
+      "Video, GIF, image and gallery support is prepared for authorized Reddit API access.",
+    href: "/v2-preview/reddit-downloader",
+    mark: "r/",
+    status: "API approval",
+    available: false,
   },
   {
     title: "TikTok Downloader",
@@ -28,27 +48,13 @@ const platforms = [
   },
   {
     title: "Facebook Downloader",
-    description: "Public Facebook video support is planned for a later release.",
+    description:
+      "Public Facebook video support is planned for a later release.",
     mark: "f",
     status: "Coming soon",
     available: false,
   },
-  {
-    title: "Reddit Downloader",
-    description: "Public Reddit media support is planned for future expansion.",
-    mark: "r/",
-    status: "Planned",
-    available: false,
-  },
-  {
-    title: "Pinterest Downloader",
-    description: "Video, image and GIF Pin support is prepared for approved Pinterest API access.",
-    href: "/v2-preview/pinterest-downloader",
-    mark: "P",
-    status: "API setup",
-    available: false,
-  },
-];
+]
 
 const advantages = [
   [

@@ -71,6 +71,8 @@ if ($ready) {
   Write-Host "Home:      $baseUrl/v2-preview" -ForegroundColor DarkGray
   Write-Host "Instagram: $baseUrl/v2-preview/instagram-downloader" -ForegroundColor DarkGray
   Write-Host "X:         $baseUrl/v2-preview/x-downloader" -ForegroundColor DarkGray
+  Write-Host "Pinterest: $baseUrl/v2-preview/pinterest-downloader" -ForegroundColor DarkGray
+  Write-Host "Reddit:    $baseUrl/v2-preview/reddit-downloader" -ForegroundColor DarkGray
   Start-Process $previewUrl
 } else {
   Write-Host ""

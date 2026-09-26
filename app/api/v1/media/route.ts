@@ -75,7 +75,9 @@ function requestHeaders(
               ? "https://www.instagram.com/"
               : platform === "x"
                 ? "https://x.com/"
-                : "https://www.pinterest.com/",
+                : platform === "pinterest"
+                ? "https://www.pinterest.com/"
+                : "https://www.reddit.com/",
         }
       : {}),
     ...(range ? { Range: range } : {}),
@@ -274,25 +276,33 @@ export async function GET(request: Request) {
       ? "Instagram"
       : sourcePlatform === "x"
         ? "X"
-        : "Pinterest";
+        : sourcePlatform === "pinterest"
+          ? "Pinterest"
+          : "Reddit";
   const resolverFailureCode =
     sourcePlatform === "instagram"
       ? ERROR_CODES.INSTAGRAM_RESOLVER_FAILED
       : sourcePlatform === "x"
         ? ERROR_CODES.X_RESOLVER_FAILED
-        : ERROR_CODES.PINTEREST_RESOLVER_FAILED;
+        : sourcePlatform === "pinterest"
+          ? ERROR_CODES.PINTEREST_RESOLVER_FAILED
+          : ERROR_CODES.REDDIT_RESOLVER_FAILED;
   const upstreamChangedCode =
     sourcePlatform === "instagram"
       ? ERROR_CODES.INSTAGRAM_UPSTREAM_CHANGED
       : sourcePlatform === "x"
         ? ERROR_CODES.X_UPSTREAM_CHANGED
-        : ERROR_CODES.PINTEREST_UPSTREAM_CHANGED;
+        : sourcePlatform === "pinterest"
+          ? ERROR_CODES.PINTEREST_UPSTREAM_CHANGED
+          : ERROR_CODES.REDDIT_UPSTREAM_CHANGED;
   const mediaUnavailableCode =
     sourcePlatform === "instagram"
       ? ERROR_CODES.INSTAGRAM_MEDIA_UNAVAILABLE
       : sourcePlatform === "x"
         ? ERROR_CODES.X_MEDIA_UNAVAILABLE
-        : ERROR_CODES.PINTEREST_MEDIA_UNAVAILABLE;
+        : sourcePlatform === "pinterest"
+          ? ERROR_CODES.PINTEREST_MEDIA_UNAVAILABLE
+          : ERROR_CODES.REDDIT_MEDIA_UNAVAILABLE;
 
   const upstream = await fetchAllowedMedia(
     source,
