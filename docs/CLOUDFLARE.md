@@ -105,3 +105,31 @@ If Cloudflare egress causes Instagram/Meta failures that do not occur on Vercel,
 ## Domain
 
 `savemingo.com` must remain unchanged until the Cloudflare preview passes all launch-critical tests.
+
+
+## Live Workers verification — 2026-09-26
+
+Worker:
+`https://savemingo.ashabup0.workers.dev`
+
+A reusable GitHub Actions runtime smoke test directly hit the deployed Worker and passed:
+
+```text
+PASS homepage 200
+PASS health 0.4.0 SM-005-reliability
+PASS resolver health 0.4.0
+PASS invalid-url contract SM-URL-001
+PASS reel resolve reel 1
+PASS carousel resolve carousel 2
+PASS media delivery 206 video/mp4
+ALL CLOUDFLARE RUNTIME SMOKE TESTS PASSED
+```
+
+This proves:
+- Workers can reach the current Instagram resolver upstreams.
+- the normalized resolver API works on Cloudflare.
+- signed Meta CDN media can be streamed through the Worker.
+- Range requests propagate successfully.
+- request IDs survive the Cloudflare runtime path.
+
+The Vercel project remains available as rollback until post-launch stability is established.
