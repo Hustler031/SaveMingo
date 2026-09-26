@@ -288,3 +288,41 @@ Do not promote TikTok to Available or indexable production pages until real fixt
 - Generic anonymous API blocking maps to `SM-RD-104` with an accurate message.
 - Tests cover session cookies, share-link redirect, retry behavior, generic 403 classification, and true private-post classification.
 
+
+
+## SM-013 handoff — Reddit video with sound
+
+Current branch:
+`chatgpt/SM-013-reddit-audio-mux`
+
+Goal:
+turn Reddit's separate video/audio DASH tracks into one downloadable MP4 without coupling FFmpeg to the main SaveMingo runtime.
+
+Local test command:
+`START_SAVEMINGO_REDDIT_SOUND.cmd`
+
+Local ports:
+- mux service: 8788
+- mux-enabled SaveMingo: 3002
+
+Expected result for a Reddit video with separate audio:
+1. result card says Sound detected;
+2. primary CTA says **Download video with sound**;
+3. CTA enters **Merging video + sound…**;
+4. merged MP4 downloads;
+5. video-only fallback remains available.
+
+Required real-fixture review:
+- one Reddit native video where `has_audio=true`;
+- verify resulting MP4 actually contains audible sound;
+- test mux failure fallback by stopping the mux service;
+- verify normal Reddit video-only download still works;
+- recheck another platform to prove isolation.
+
+Production requirements after local success:
+- deploy `services/reddit-mux` to a separate Node runtime;
+- set `REDDIT_MUX_SERVICE_URL`;
+- set matching strong `REDDIT_MUX_SERVICE_TOKEN` / `MUX_SERVICE_TOKEN`;
+- verify `/api/health/reddit-mux`;
+- only then promote "Reddit Video Downloader with Sound" as a production capability.
+
