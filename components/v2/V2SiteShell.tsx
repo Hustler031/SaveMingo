@@ -71,7 +71,7 @@ const menus: Record<
     activePrefixes: ["/reddit"],
     hint: "Videos, images, GIFs and galleries",
     items: [
-      ["/reddit-video-downloader", "Video + Sound Check"],
+      ["/reddit-video-downloader", "Video + Sound"],
       ["/reddit-image-downloader", "Image Downloader"],
       ["/reddit-gif-downloader", "GIF Downloader"],
     ],
@@ -221,7 +221,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
       <div className="relative z-10">{children}</div>
 
       <footer className="relative z-10 border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/45">
-        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 sm:px-6 lg:px-8">
           <div>
             <div className="flex items-center gap-2">
               <Image
@@ -281,6 +281,15 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
               ["/tiktok-video-downloader", "Videos"],
               ["/tiktok-photo-downloader", "Photos"],
               ["/tiktok-slideshow-downloader", "Slideshows"],
+            ]}
+          />
+          <FooterGroup
+            title="Company"
+            items={[
+              ["/about", "About"],
+              ["/privacy", "Privacy"],
+              ["/terms", "Terms"],
+              ["/copyright", "Copyright"],
             ]}
           />
         </div>
