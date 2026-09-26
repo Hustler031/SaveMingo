@@ -8,60 +8,72 @@ Supporting line: **Save it. Keep it.**
 
 ## Milestones
 - **SM-001 — Foundation: COMPLETE**
-- **SM-002 — Product UI / downloader states: VERIFIED, PENDING MERGE**
+- **SM-002 — Product UI / downloader states: COMPLETE**
+- **SM-003 — Instagram resolver foundation: LIVE VERIFIED**
 
 ## Version
-`0.1.0`
+`0.2.0`
 
-## Environment
-- GitHub repository: `Hustler031/SaveMingo`
-- Active branch: `chatgpt/SM-002-product-ui`
-- Pull request: `#3`
+## Infrastructure
+- GitHub: `Hustler031/SaveMingo`
+- Active PR: `#4`
+- Active branch: `chatgpt/SM-003-instagram-resolver`
+- Vercel project: `save-mingo`
 - Vercel project ID: `prj_e7MsyDZdG6Jp29NfRLpz6gYbMcrb`
-- Verified preview deployment: `dpl_FGnFSsnVnbRRwAnXhFWMRuw4gVoj`
-- Preview alias: `save-mingo-git-chatgpt-sm-002-product-ui-hustler031s-projects.vercel.app`
-- Vercel connector access: **WORKING**
-- Custom production domain: `savemingo.com`
-- SaveMingo custom-domain cutover: **NOT YET DONE**
-- Instagram resolver: **not configured**
-- Database: **not required**
-- Authentication: **not required**
+- Custom domain `savemingo.com`: **not cut over yet**
+- Database: not required
+- Instagram credentials: not required
 
-## SM-002 delivered
-- Reusable downloader state machine
-- Idle / validating / validated / error UI states
-- Standard UI-layer error codes + request IDs
-- Central Instagram URL validation module
-- Resolver-ready response/media TypeScript types
-- Reusable media result card for SM-003
-- Shared site header/footer
-- Rebuilt homepage using the reusable downloader
-- Dedicated `/instagram-downloader` page
-- Page-specific metadata/canonical handling
-- Public-links-only product messaging
+## Resolver architecture
+```text
+Browser
+  → POST /api/v1/resolve
+  → URL validation
+  → Instagram public-page provider
+  → if needed: anonymous Instagram GraphQL provider
+  → normalized SaveMingo media/error response
+  → UI result card
+```
 
-## Verification
-- GitHub Actions CI: **PASS**
-- Dependency install: **PASS**
-- TypeScript: **PASS**
-- ESLint: **PASS**
-- Next.js production build: **PASS**
-- Vercel preview: **READY**
-- Homepage render: **PASS**
-- Invalid URL error state + SM-URL code/request ID: **PASS**
-- Valid Reel URL validation/recognized state: **PASS**
-- Instagram downloader navigation/page content: **PASS**
-- No misleading download-success state: **PASS**
-- Vercel preview runtime warnings/errors during test: **NONE**
-- Desktop visual smoke test: **PASS**
-- Mobile implementation audit: responsive breakpoint structure reviewed; dedicated device emulation was unavailable in the browser runner.
+## Live verification
+Public Reel tested:
+`https://www.instagram.com/reel/DH56yy7p3lZ/`
 
-## Important behavior
-Valid Instagram links are recognized but media is NOT resolved yet. This is intentional until SM-003.
+Verified result:
+- HTTP: 200
+- provider: `graphql`
+- strategy: `graphql-video-versions`
+- content type: `reel`
+- media count: 1
+- resolution returned: 720×1280
+- request ID: `sm_D52CC37321`
+- resolver duration: 1135 ms
+- direct Instagram CDN media URL returned
+- UI displayed active **Open media** action
+
+## Automated verification
+- dependency install: PASS
+- TypeScript: PASS
+- ESLint: PASS
+- Vitest: PASS
+- Next.js production build: PASS
+- URL validation tests: PASS
+- HTML/Relay parser tests: PASS
+- GraphQL normalization tests: PASS
+
+## Reliability notes
+- Instagram's ordinary anonymous Reel HTML currently contains the shortcode but may omit all usable media fields.
+- SaveMingo therefore keeps that cheap route as strategy A and falls back to anonymous GraphQL as strategy B.
+- Current GraphQL document ID has a built-in default and can be overridden through `INSTAGRAM_GRAPHQL_DOC_ID` if Instagram rotates it.
+- Every resolver failure/success is traceable by request ID in Vercel logs.
+- No media is permanently stored.
+
+## Current supported scope
+- Public Instagram Reel/video: **working**
+- Public photo: next
+- Public carousel/mixed carousel: next
+- Private content: intentionally unsupported
+- Guaranteed file-download proxy: not yet implemented; current success returns an **Open media** URL.
 
 ## Next milestone
-**SM-003 — Resolver foundation**
-- normalized `POST /api/v1/resolve` contract
-- platform routing
-- real public Instagram Reel/video resolution
-- connect normalized response into existing downloader state machine
+**SM-004 — Photo + carousel + download delivery**
