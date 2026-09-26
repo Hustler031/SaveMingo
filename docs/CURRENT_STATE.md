@@ -452,7 +452,7 @@ Implemented during SM-014:
   fresh runtime verification passes;
 - production navigation/internal links point to non-preview URLs;
 - sitemap/indexability partition updated;
-- legacy `/v2-preview/*` remains noindex;
+- legacy `/v2-preview/*` URLs redirect to their production equivalents;
 - analytics now records platform on resolver/download funnel events;
 - Reddit FFmpeg mux moved to the Cloudflare-native target architecture:
   private mux Worker + isolated Container + private Service Binding;
