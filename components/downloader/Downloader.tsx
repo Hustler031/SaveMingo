@@ -1,18 +1,19 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { ResultCard } from "@/components/downloader/ResultCard";
 import type {
   DownloaderPhase,
   DownloaderUiError,
-  InstagramContentType,
+  ResolveResponse,
+  ResolveSuccess,
 } from "@/lib/downloader/types";
 import { validateInstagramUrl } from "@/lib/downloader/validation";
 
-type ValidationState = {
+type DownloaderState = {
   phase: DownloaderPhase;
-  contentType?: InstagramContentType;
-  normalizedUrl?: string;
   error?: DownloaderUiError;
+  result?: ResolveSuccess;
 };
 
 type DownloaderProps = {
@@ -28,26 +29,9 @@ function createClientRequestId() {
   return `sm_ui_${raw.slice(0, 10).toUpperCase()}`;
 }
 
-function contentLabel(contentType?: InstagramContentType) {
-  switch (contentType) {
-    case "reel":
-      return "Instagram Reel";
-    case "video":
-      return "Instagram video";
-    case "post":
-      return "Instagram post";
-    case "carousel":
-      return "Instagram carousel";
-    case "photo":
-      return "Instagram photo";
-    default:
-      return "Instagram content";
-  }
-}
-
 export function Downloader({ compact = false }: DownloaderProps) {
   const [url, setUrl] = useState("");
-  const [state, setState] = useState<ValidationState>({ phase: "idle" });
+  const [state, setState] = useState<DownloaderState>({ phase: "idle" });
 
   const isBusy = state.phase === "validating" || state.phase === "resolving";
   const canSubmit = useMemo(
@@ -83,31 +67,65 @@ export function Downloader({ compact = false }: DownloaderProps) {
     event.preventDefault();
 
     setState({ phase: "validating" });
+    await new Promise((resolve) => window.setTimeout(resolve, 160));
 
-    // Keeps the state transition visible and gives Day 3 a clean handoff
-    // point for the real /api/v1/resolve request.
-    await new Promise((resolve) => window.setTimeout(resolve, 220));
+    const validated = validateInstagramUrl(url);
 
-    const result = validateInstagramUrl(url);
-
-    if (!result.ok) {
+    if (!validated.ok) {
       setState({
         phase: "error",
         error: {
-          code: result.code,
-          message: result.message,
+          code: validated.code,
+          message: validated.message,
           requestId: createClientRequestId(),
         },
       });
       return;
     }
 
-    setUrl(result.normalizedUrl);
-    setState({
-      phase: "validated",
-      contentType: result.contentType,
-      normalizedUrl: result.normalizedUrl,
-    });
+    setUrl(validated.normalizedUrl);
+    setState({ phase: "resolving" });
+
+    try {
+      const response = await fetch("/api/v1/resolve", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: validated.normalizedUrl,
+        }),
+      });
+
+      const payload = (await response.json()) as ResolveResponse;
+
+      if (!payload.success) {
+        setState({
+          phase: "error",
+          error: {
+            code: payload.error.code,
+            message: payload.error.message,
+            requestId: payload.requestId,
+          },
+        });
+        return;
+      }
+
+      setState({
+        phase: "success",
+        result: payload,
+      });
+    } catch {
+      setState({
+        phase: "error",
+        error: {
+          code: "SM-SRV-301",
+          message:
+            "SaveMingo couldn’t reach the resolver. Try the link again shortly.",
+          requestId: createClientRequestId(),
+        },
+      });
+    }
   }
 
   return (
@@ -161,36 +179,38 @@ export function Downloader({ compact = false }: DownloaderProps) {
             disabled={!canSubmit}
             className="flex h-14 min-w-32 items-center justify-center gap-2 rounded-[20px] bg-neutral-950 px-6 text-sm font-black text-white shadow-lg shadow-neutral-950/10 transition hover:-translate-y-0.5 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0"
           >
-            {state.phase === "validating" ? (
+            {state.phase === "validating" || state.phase === "resolving" ? (
               <>
                 <span
                   aria-hidden="true"
                   className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white"
                 />
-                Checking
+                {state.phase === "validating" ? "Checking" : "Finding media"}
               </>
             ) : (
-              "Check link"
+              "Get media"
             )}
           </button>
         </div>
       </form>
 
       <div className="mt-3 min-h-24" aria-live="polite">
-        {state.phase === "idle" && (
-          <IdleStatus compact={compact} />
-        )}
+        {state.phase === "idle" && <IdleStatus compact={compact} />}
 
         {state.phase === "validating" && (
-          <LoadingStatus />
+          <LoadingStatus text="Checking the link format…" />
         )}
 
-        {state.phase === "validated" && (
-          <ValidatedStatus contentType={state.contentType} />
+        {state.phase === "resolving" && (
+          <LoadingStatus text="Finding public media…" />
         )}
 
         {state.phase === "error" && state.error && (
           <ErrorStatus error={state.error} />
+        )}
+
+        {state.phase === "success" && state.result && (
+          <ResultCard result={state.result} />
         )}
       </div>
     </div>
@@ -212,39 +232,11 @@ function IdleStatus({ compact }: { compact: boolean }) {
   );
 }
 
-function LoadingStatus() {
+function LoadingStatus({ text }: { text: string }) {
   return (
     <div className="mx-auto flex max-w-xl items-center justify-center gap-3 rounded-2xl border border-neutral-200 bg-white/70 px-4 py-4 text-sm text-neutral-600">
       <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[var(--accent)]" />
-      Checking the link format…
-    </div>
-  );
-}
-
-function ValidatedStatus({
-  contentType,
-}: {
-  contentType?: InstagramContentType;
-}) {
-  return (
-    <div className="mx-auto max-w-xl rounded-[22px] border border-emerald-200 bg-emerald-50/80 px-5 py-4 text-left shadow-sm">
-      <div className="flex items-start gap-3">
-        <div
-          aria-hidden="true"
-          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-black text-white"
-        >
-          ✓
-        </div>
-        <div>
-          <p className="text-sm font-black text-emerald-950">
-            {contentLabel(contentType)} link recognized
-          </p>
-          <p className="mt-1 text-sm leading-6 text-emerald-800">
-            The interface is resolver-ready. Media extraction is intentionally
-            not enabled in this Day 2 preview yet.
-          </p>
-        </div>
-      </div>
+      {text}
     </div>
   );
 }
@@ -260,7 +252,9 @@ function ErrorStatus({ error }: { error: DownloaderUiError }) {
           !
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-black text-red-950">Check the link</p>
+          <p className="text-sm font-black text-red-950">
+            We couldn’t get that media
+          </p>
           <p className="mt-1 text-sm leading-6 text-red-800">{error.message}</p>
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[11px] text-red-700/80">
             <span>{error.code}</span>
