@@ -20,31 +20,33 @@ const platforms = [
     available: true,
   },
   {
+    title: "Pinterest Downloader",
+    description: "Download supported public Pinterest video and image pins from pin links.",
+    href: "/v2-preview/pinterest-downloader",
+    mark: "P",
+    status: "Available",
+    available: true,
+  },
+  {
+    title: "Reddit Downloader",
+    description: "Download supported Reddit-hosted videos, images, GIFs, and galleries.",
+    href: "/v2-preview/reddit-downloader",
+    mark: "r/",
+    status: "Available",
+    available: true,
+  },
+  {
     title: "TikTok Downloader",
-    description: "A simple short-form video workflow is planned next.",
+    description: "A short-form video workflow is planned for a later platform milestone.",
     mark: "♪",
     status: "Coming soon",
     available: false,
   },
   {
     title: "Facebook Downloader",
-    description: "Public Facebook video support is planned for a later release.",
+    description: "Public Facebook media support remains on the roadmap.",
     mark: "f",
     status: "Coming soon",
-    available: false,
-  },
-  {
-    title: "Reddit Downloader",
-    description: "Public Reddit media support is planned for future expansion.",
-    mark: "r/",
-    status: "Planned",
-    available: false,
-  },
-  {
-    title: "Pinterest Downloader",
-    description: "Pinterest media support can join the same SaveMingo experience later.",
-    mark: "P",
-    status: "Planned",
     available: false,
   },
 ];
@@ -52,7 +54,7 @@ const platforms = [
 const advantages = [
   [
     "No signup",
-    "Paste a supported public Instagram or X link and download without creating an account.",
+    "Paste a supported public Instagram, X, Pinterest, or Reddit link without creating an account.",
   ],
   [
     "Download first",
@@ -76,8 +78,8 @@ export function V2Preview() {
           <span className="text-[var(--v2-accent)]">find online.</span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-balance text-[15px] leading-6 text-[var(--v2-muted)] sm:text-base">
-          Instagram and X downloads are available now. More platforms will
-          join SaveMingo over time.
+          Instagram, X, Pinterest, and Reddit are available in this preview.
+          More platforms can join the same SaveMingo workflow later.
         </p>
 
         <div className="mt-6 sm:mt-7">
@@ -103,8 +105,8 @@ export function V2Preview() {
               </h2>
             </div>
             <p className="max-w-md text-sm leading-6 text-[var(--v2-muted)]">
-              Instagram and X are available now. Other platform downloaders
-              will appear here as they become ready.
+              Four platform modules are available in this preview. Each one
+              stays isolated so an upstream break does not take down the others.
             </p>
           </div>
 
@@ -180,7 +182,7 @@ export function V2Preview() {
 
           <div className="mt-7 grid gap-3 md:grid-cols-3">
             {[
-              ["01", "Copy", "Copy a supported public Instagram or X link."],
+              ["01", "Copy", "Copy a supported public media post or pin link."],
               ["02", "Paste", "Paste the link into SaveMingo."],
               ["03", "Download", "Download immediately or open Preview first."],
             ].map(([number, title, text]) => (
