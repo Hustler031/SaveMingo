@@ -2,13 +2,17 @@
 
 ## Operational source of truth
 
-For V1, use:
-1. Vercel deployment health
-2. Vercel runtime logs
-3. SaveMingo request IDs
-4. `/api/health`
-5. `/api/health/resolver`
-6. Sentry once connected
+Use:
+1. Cloudflare Worker deployment/build status;
+2. Cloudflare Worker logs/observability;
+3. Container status for `savemingo-reddit-mux`;
+4. SaveMingo request IDs;
+5. `/api/health`;
+6. `/api/health/resolver`;
+7. per-platform health endpoints;
+8. `/api/health/reddit-mux`;
+9. GA4 + Search Console for product/search behavior;
+10. Vercel only as rollback evidence during early launch.
 
 ## Structured event families
 
@@ -28,47 +32,71 @@ Media delivery:
 - `media.invalid_content_type`
 - `media.too_large`
 
+Reddit mux:
+- `mux.unconfigured` (fallback/non-Cloudflare environments)
+- `mux.network_failed`
+- `mux.failed`
+- `mux.success`
+
 Every operational request carries a SaveMingo request ID.
 
-## Privacy rule
+## Privacy
 
 Do not log:
-- raw visitor IP addresses
-- Instagram credentials
-- cookies
-- auth headers
-- complete signed CDN URLs
+- raw visitor IP addresses;
+- credentials or cookies;
+- auth headers;
+- full signed media URLs;
+- Reddit mux bearer tokens used in local fallback;
+- temporary file contents.
 
-Media transport logs may contain only sanitized CDN hostnames plus status/content-type/timing metadata.
+Log platform, sanitized host, status, error code, timing and request ID only.
 
 ## Rate limiting
 
-V1 includes best-effort fixed-window protection:
-- resolve API: 20 requests/minute/network
-- media delivery: 80 requests/minute/network
+Launch defaults:
+- resolve API: 20 requests/minute/network;
+- media + mux API: 80 requests/minute/network.
 
-This is stored only in warm server memory and is intentionally documented as **best-effort per Vercel instance**, not globally distributed enforcement.
+The in-process limiter is best-effort per warm Worker isolate. Use Cloudflare
+rate limiting/WAF if abuse or real traffic requires globally coordinated
+enforcement.
 
-Before high traffic, move global abuse protection to a distributed store or platform firewall.
+## Time and size limits
 
-## Timeout policy
+- Instagram fetch: 10 seconds;
+- X fetch: 10 seconds;
+- Pinterest fetch: 10 seconds;
+- Reddit fetch: 10 seconds;
+- TikTok fetch: 12 seconds;
+- media delivery fetch: 20 seconds;
+- mux video/audio input: 150 MiB each in the Cloudflare Container profile;
+- mux upstream fetch: 25 seconds;
+- FFmpeg mux: 60 seconds;
+- container idle sleep: 30 seconds.
 
-- Instagram resolver fetch: 10 seconds
-- media CDN fetch: 20 seconds
+## Mux monitoring and fallback
 
-All external fetches should use explicit timeouts.
+Alert/investigate when:
+- `/api/health/reddit-mux` is not healthy;
+- `SM-RD-106` or `SM-RD-107` rises materially;
+- Container cold starts or mux latency become user-visible;
+- CPU/memory/disk/network usage approaches included plan allocations.
 
-## CDN behavior
+A mux incident must not be treated as a full-site incident unless unrelated
+health endpoints also fail. Video-only Reddit is the fallback.
 
-Instagram/Meta media URLs are signed and may expire. A valid resolved URL can later return 403. SaveMingo retries a 401/403 fetch once without the Instagram Referer and emits sanitized diagnostics.
+## Analytics
 
-## Sentry
+The public GA4 Measurement ID is `G-ZXK1PRVH6X`.
 
-Sentry is optional until a project/DSN is connected.
+Funnel events:
+- `page_view`
+- `paste_clicked`
+- `resolve_started`
+- `resolve_success`
+- `resolve_failed`
+- `download_clicked`
 
-When configured:
-- add `SENTRY_DSN` in Vercel
-- never commit DSN/auth material to source
-- use a Sentry auth token only for release/source-map operations if later enabled
-
-Sentry should complement, not replace, request IDs and structured Vercel logs.
+Resolve/download events include the platform dimension. Never send pasted URLs,
+signed CDN URLs, request IDs or secrets to analytics.
