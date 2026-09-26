@@ -11,14 +11,11 @@ type ServiceBinding = {
   fetch(input: Request): Promise<Response>;
 };
 
-type WorkerEnv = {
-  REDDIT_MUX?: ServiceBinding;
-  [key: string]: unknown;
-};
+type VinextEnv = Parameters<typeof handler.fetch>[1];
+type VinextContext = Parameters<typeof handler.fetch>[2];
 
-type WorkerContext = {
-  waitUntil(promise: Promise<unknown>): void;
-  passThroughOnException(): void;
+type WorkerEnv = VinextEnv & {
+  REDDIT_MUX?: ServiceBinding;
 };
 
 function jsonError(
@@ -307,7 +304,7 @@ export default {
   async fetch(
     request: Request,
     env: WorkerEnv,
-    ctx: WorkerContext,
+    ctx: VinextContext,
   ): Promise<Response> {
     const url = new URL(request.url);
 
