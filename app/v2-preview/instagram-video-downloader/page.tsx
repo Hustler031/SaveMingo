@@ -1,11 +1,5 @@
-import type { Metadata } from "next";
-import { V2InstagramToolPage } from "@/components/v2/V2InstagramToolPage";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Instagram Video Downloader — SaveMingo V2 Preview",
-  robots: { index: false, follow: false },
-};
-
-export default function Page() {
-  return <V2InstagramToolPage kind="video" />;
+export default function LegacyV2PreviewRedirect() {
+  redirect("/instagram-video-downloader");
 }
