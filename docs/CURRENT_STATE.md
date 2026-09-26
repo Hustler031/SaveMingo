@@ -428,3 +428,42 @@ Implemented:
 Production mux hosting is not configured yet.
 Production/main remains untouched.
 
+## SM-014 — pre-launch consolidation and Cloudflare-native mux
+
+Status: **IN FINAL AUDIT / PRODUCTION ACCOUNT GATES PENDING**
+
+Branch:
+`chatgpt/SM-014-launch-audit`
+
+Source baseline:
+`chatgpt/SM-013-reddit-audio-mux` at
+`d8cce41620735c4a1333f63503220db49054be58`.
+
+The final SM-013 branch is a descendant of current `main` and contains the
+selected stacked implementation. PRs #17 and #18 are superseded divergent
+experiments; their selected functionality is represented by the generalized
+SM-011/012 stack carried through PRs #19–#21.
+
+Implemented during SM-014:
+- V2 UI promoted from preview components to real production homepage and
+  platform routes;
+- Instagram and X/Twitter production routes prepared as indexable;
+- Pinterest, Reddit, and TikTok production URLs exist but remain noindex until
+  fresh runtime verification passes;
+- production navigation/internal links point to non-preview URLs;
+- sitemap/indexability partition updated;
+- legacy `/v2-preview/*` remains noindex;
+- analytics now records platform on resolver/download funnel events;
+- Reddit FFmpeg mux moved to the Cloudflare-native target architecture:
+  private mux Worker + isolated Container + private Service Binding;
+- production audibility smoke script added;
+- deployment/monitoring/rollback docs updated.
+
+Remaining hard gates:
+1. repository CI must become green for this branch;
+2. Cloudflare Workers Paid/Containers must be enabled if not already active;
+3. deploy `savemingo-reddit-mux` before deploying the caller Worker;
+4. run real platform regression and Reddit audible-mux smoke;
+5. perform fresh-main cross-audit;
+6. complete custom-domain/GA4/Search Console launch checks.
+
