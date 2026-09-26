@@ -1,4 +1,4 @@
-import { ERROR_CODES, type SaveMingoErrorCode } from "@/lib/errors";
+import { ERROR_CODES, type SaveMingoErrorCode } from "@/lib/errors";\nimport { RELIABILITY_POLICY } from "@/lib/reliability/policy";
 import type {
   InstagramContentType,
   MediaAsset,
@@ -9,8 +9,8 @@ import {
   type ParsedInstagramPage,
 } from "@/resolver/instagram/parse";
 
-const MAX_REDIRECTS = 3;
-const MAX_HTML_BYTES = 5_000_000;
+const RELIABILITY_POLICY.instagram.maxRedirects = 3;
+const RELIABILITY_POLICY.instagram.maxHtmlBytes = 5_000_000;
 const FETCH_TIMEOUT_MS = 10_000;
 
 type ProviderDebug = {
@@ -104,7 +104,7 @@ function buildDebug(html: string, shortcode?: string): ProviderDebug {
 async function fetchInstagramHtml(sourceUrl: string) {
   let currentUrl = new URL(sourceUrl);
 
-  for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount++) {
+  for (let redirectCount = 0; redirectCount <= RELIABILITY_POLICY.instagram.maxRedirects; redirectCount++) {
     if (!isInstagramHost(currentUrl.hostname)) {
       return failure(
         ERROR_CODES.INSTAGRAM_RESOLVER_FAILED,
@@ -120,7 +120,7 @@ async function fetchInstagramHtml(sourceUrl: string) {
         method: "GET",
         redirect: "manual",
         cache: "no-store",
-        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+        signal: AbortSignal.timeout(RELIABILITY_POLICY.instagram.fetchTimeoutMs),
         headers: {
           Accept:
             "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -151,7 +151,7 @@ async function fetchInstagramHtml(sourceUrl: string) {
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get("location");
 
-      if (!location || redirectCount === MAX_REDIRECTS) {
+      if (!location || redirectCount === RELIABILITY_POLICY.instagram.maxRedirects) {
         return failure(
           ERROR_CODES.INSTAGRAM_RESOLVER_FAILED,
           "Instagram returned an unexpected redirect.",
@@ -211,7 +211,7 @@ async function fetchInstagramHtml(sourceUrl: string) {
       10,
     );
 
-    if (Number.isFinite(contentLength) && contentLength > MAX_HTML_BYTES) {
+    if (Number.isFinite(contentLength) && contentLength > RELIABILITY_POLICY.instagram.maxHtmlBytes) {
       return failure(
         ERROR_CODES.INSTAGRAM_RESOLVER_FAILED,
         "Instagram returned a page that was too large to inspect safely.",
@@ -221,7 +221,7 @@ async function fetchInstagramHtml(sourceUrl: string) {
 
     const html = await response.text();
 
-    if (html.length > MAX_HTML_BYTES) {
+    if (html.length > RELIABILITY_POLICY.instagram.maxHtmlBytes) {
       return failure(
         ERROR_CODES.INSTAGRAM_RESOLVER_FAILED,
         "Instagram returned a page that was too large to inspect safely.",
