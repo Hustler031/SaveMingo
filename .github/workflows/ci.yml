@@ -40,6 +40,27 @@ jobs:
         run: |
           node --input-type=module -e "import ffmpeg from 'ffmpeg-static'; import { spawnSync } from 'node:child_process'; const result = spawnSync(ffmpeg, ['-version'], { stdio: 'inherit' }); process.exit(result.status ?? 1);"
 
+      - name: Validate Reddit mux Cloudflare Worker
+        run: npm run check:reddit-mux-worker
+
+      - name: Build Reddit mux container image
+        run: docker build -t savemingo-reddit-mux:test services/reddit-mux
+
+      - name: Smoke Reddit mux container image
+        run: |
+          docker run -d --rm --name savemingo-reddit-mux-ci -e MUX_INTERNAL_ONLY=1 -p 8788:8788 savemingo-reddit-mux:test
+          for i in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8788/health >/tmp/reddit-mux-health.json; then
+              cat /tmp/reddit-mux-health.json
+              docker stop savemingo-reddit-mux-ci
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs savemingo-reddit-mux-ci || true
+          docker stop savemingo-reddit-mux-ci || true
+          exit 1
+
       - name: Typecheck
         run: npm run typecheck
 
