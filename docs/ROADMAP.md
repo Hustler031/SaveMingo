@@ -20,3 +20,21 @@ Landing pages, metadata/canonicals, sitemap/robots, analytics events, Search Con
 
 ## Day 7 — Audit & launch
 Mobile/desktop, performance, security, SEO, failures and production cutover.
+
+
+## SM-010+ — Multi-platform expansion
+
+### SM-010 — Platform isolation foundation + X
+- normalized shared resolver route;
+- isolated adapter registry;
+- platform-scoped validation/errors/health/reliability;
+- X public-media adapter;
+- regression tests protecting Instagram;
+- local X review before production.
+
+### After X live verification
+- create production X SEO page(s) only after real fixture reliability is proven;
+- monitor X upstream breakage independently from Instagram;
+- evaluate Facebook as the next platform;
+- do not begin another platform until Instagram + X regression smoke is stable.
+
