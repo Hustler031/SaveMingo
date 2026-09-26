@@ -164,7 +164,9 @@ export function V2Downloader({
                 ? "Instagram link"
                 : platform === "pinterest"
                   ? "Pinterest Pin link"
-                  : "Instagram, X, or Pinterest link"}
+                  : platform === "reddit"
+                    ? "Reddit post link"
+                    : "Supported media link"}
           </label>
 
           <div className="flex min-w-0 flex-1 items-center rounded-[17px] border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-3.5 transition focus-within:border-[var(--v2-accent)] focus-within:ring-2 focus-within:ring-[var(--v2-accent)]/15">
@@ -187,7 +189,9 @@ export function V2Downloader({
                     ? "Paste an Instagram link"
                     : platform === "pinterest"
                       ? "Paste a Pinterest Pin link"
-                      : "Paste an Instagram, X, or Pinterest link"
+                      : platform === "reddit"
+                        ? "Paste a Reddit post link"
+                        : "Paste a supported media link"
               }
               className="h-14 min-w-0 flex-1 bg-transparent px-2.5 text-[15px] font-medium text-[var(--v2-text)] outline-none placeholder:text-[var(--v2-muted)]"
             />
@@ -234,7 +238,9 @@ export function V2Downloader({
                   ? "Checking that this is a supported public Instagram link."
                   : platform === "pinterest"
                     ? "Checking the Pinterest Pin link and API access."
-                    : "Checking the platform and public link format."
+                    : platform === "reddit"
+                      ? "Checking the Reddit post link and API access."
+                      : "Checking the platform and public link format."
             }
           />
         )}
