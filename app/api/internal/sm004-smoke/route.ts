@@ -4,7 +4,7 @@ import { resolveInstagram } from "@/resolver/instagram";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PHOTO_URL = "https://www.instagram.com/p/DCMUrLltVlM/";
+const PHOTO_URL = "https://www.instagram.com/p/DZK3iOsRlWX/";
 
 export async function GET() {
   if (process.env.VERCEL_ENV === "production") {
@@ -20,6 +20,7 @@ export async function GET() {
         provider: result.provider,
         code: result.code,
         diagnostic: result.diagnostic,
+        debug: result.debug,
       },
       { status: 502 },
     );
