@@ -60,3 +60,14 @@ This is a hard engineering rule for every current and future downloader platform
 - Do not modify an existing working adapter merely to make a new platform work, except for backward-compatible shared-contract changes covered by regression tests.
 - Before merging a new platform, run its tests plus regression coverage for every existing live platform.
 - A new platform must remain removable/disableable without requiring a rewrite of the UI or another platform adapter.
+
+
+## SEO page quality contract
+
+- Research current search intent before adding production SEO pages.
+- Add a subpage only when it serves a materially distinct user intent or media capability.
+- Never create doorway-style or near-duplicate pages solely for keyword or brand-spelling variations.
+- Experimental and not-yet-live downloader pages must remain `noindex`.
+- Do not claim a capability in title/H1/meta that the live resolver cannot actually deliver.
+- Preserve one canonical production URL per intent cluster and use natural synonyms in copy instead of duplicate pages.
+- Read `docs/SEO_INTENT_MAP.md` before adding or promoting platform SEO pages.
