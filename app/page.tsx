@@ -3,7 +3,7 @@ import { V2Preview } from "@/components/v2/V2Preview";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "SaveMingo — Social Media Downloader for Public Links",
+  title: { absolute: "SaveMingo — Social Media Downloader for Public Links" },
   description:
     "Download supported public social media videos, photos, GIFs, and carousels with SaveMingo. Clean, fast, no signup.",
   alternates: {
