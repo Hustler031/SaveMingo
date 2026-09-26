@@ -3,6 +3,8 @@ import type { Platform } from "@/lib/downloader/types";
 const ALLOWED_MEDIA_ROOTS: Record<Platform, readonly string[]> = {
   instagram: ["cdninstagram.com", "fbcdn.net"],
   x: ["pbs.twimg.com", "video.twimg.com"],
+  pinterest: ["pinimg.com"],
+  reddit: ["redd.it", "redditmedia.com"],
 };
 
 function normalizedHttpsUrl(raw: string) {
@@ -53,6 +55,14 @@ export function isAllowedInstagramMediaUrl(raw: string) {
 
 export function isAllowedXMediaUrl(raw: string) {
   return mediaPlatformForUrl(raw) === "x";
+}
+
+export function isAllowedPinterestMediaUrl(raw: string) {
+  return mediaPlatformForUrl(raw) === "pinterest";
+}
+
+export function isAllowedRedditMediaUrl(raw: string) {
+  return mediaPlatformForUrl(raw) === "reddit";
 }
 
 export function safeMediaFilenameBase(raw: string | null) {
