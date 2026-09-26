@@ -1,0 +1,50 @@
+name: Cloudflare vinext bootstrap
+
+on:
+  push:
+    branches:
+      - "chatgpt/SM-005C-cloudflare"
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    if: ${{ !contains(github.event.head_commit.message, '[vinext-init]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: chatgpt/SM-005C-cloudflare
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Initialize vinext for Cloudflare
+        run: >
+          npx --yes vinext@latest init
+          --platform=cloudflare
+          --cdn-cache=none
+          --data-cache=none
+          --image-optimization=none
+          --no-prerender
+
+      - name: Verify vinext build
+        run: npm run build:vinext
+
+      - name: Commit generated migration files
+        run: |
+          git config user.name "SaveMingo Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No migration changes to commit."
+            exit 0
+          fi
+          git commit -m "chore(SM-005C): [vinext-init] generate Cloudflare Workers config"
+          git push origin HEAD:chatgpt/SM-005C-cloudflare
