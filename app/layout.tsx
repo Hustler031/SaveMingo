@@ -15,6 +15,13 @@ export const metadata: Metadata = {
   description:
     "SaveMingo is a clean, fast downloader for supported public social media content. Save it. Keep it.",
   applicationName: "SaveMingo",
+  manifest: "/manifest.webmanifest",
+  alternates: {
+    canonical: "/",
+  },
+  icons: {
+    icon: "/icon.svg",
+  },
   verification: googleVerification
     ? {
         google: googleVerification,
