@@ -220,3 +220,47 @@ Reddit sound UX:
 - also show an after-click notice for silent/separate/unknown audio states;
 - exact SEO intent is retained through **Reddit Video Downloader with Sound Check**;
 - do not change this to an unconditional "downloads with sound" promise until audio/video muxing is implemented and verified.
+
+
+## SM-012 handoff — TikTok
+
+Current branch:
+`chatgpt/SM-012-tiktok`
+
+Base:
+`chatgpt/SM-011-x-pinterest-reddit-seo`
+
+TikTok is implemented as a fully separate adapter:
+```text
+/api/v1/resolve
+   ↓
+platform detector
+   ↓
+tiktok adapter
+   ↓
+tiktok public-page resolver
+   ↓
+normalized video / photo / slideshow result
+   ↓
+shared result + media delivery UI
+```
+
+TikTok does not import Instagram, X, Pinterest, or Reddit resolver internals.
+
+Local review:
+- `START_SAVEMINGO_TIKTOK.cmd`
+- direct route: `http://localhost:3000/v2-preview/tiktok-downloader`
+
+Review fixtures:
+1. one full public TikTok video URL;
+2. one `vm.tiktok.com` or `vt.tiktok.com` video share URL;
+3. one public TikTok photo/slideshow post;
+4. actual video download;
+5. slideshow Download All + optional Preview;
+6. existing Instagram and X regression check.
+
+Known upstream risk:
+TikTok can return challenge/403 responses or change hydration JSON. Those failures must remain contained to `SM-TT-xxx` and must not affect other adapters.
+
+Do not promote TikTok to Available or indexable production pages until real fixture testing passes.
+
