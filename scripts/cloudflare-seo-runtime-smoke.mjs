@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { once } from "node:events";
 
 const port = 8788;
 const base = `http://127.0.0.1:${port}`;
@@ -36,6 +37,23 @@ async function waitForServer(timeoutMs = 30_000) {
   }
 
   throw new Error("Local Cloudflare-compatible server did not become ready");
+}
+
+async function stopChild(child) {
+  if (child.exitCode !== null || child.killed) return;
+
+  child.kill("SIGTERM");
+
+  const exited = once(child, "exit");
+  const forced = sleep(2_000).then(() => {
+    if (child.exitCode === null) {
+      child.kill("SIGKILL");
+    }
+  });
+
+  await Promise.race([exited, forced]);
+  child.stdout?.destroy();
+  child.stderr?.destroy();
 }
 
 async function main() {
@@ -93,11 +111,13 @@ async function main() {
     console.error(output);
     throw error;
   } finally {
-    child.kill("SIGTERM");
+    await stopChild(child);
   }
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.stack : error);
-  process.exit(1);
-});
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error instanceof Error ? error.stack : error);
+    process.exit(1);
+  });
