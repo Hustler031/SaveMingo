@@ -347,7 +347,6 @@ export async function resolveReddit(sourceUrl: string) {
 
   if (!auth.ok) {
     return {
-      ok: false as const,
       provider: "reddit-api",
       ...auth,
     };
