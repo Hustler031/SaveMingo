@@ -40,6 +40,9 @@ function videoPayload(hasAudio = true) {
         height: 720,
         is_gif: false,
         has_audio: hasAudio,
+        dash_url: hasAudio
+          ? "https://v.redd.it/example/DASHPlaylist.mpd"
+          : undefined,
       },
     },
   });
@@ -137,6 +140,10 @@ describe("Reddit resolver", () => {
         type: "video",
         url: "https://v.redd.it/example/DASH_720.mp4",
         audioStatus: "separate",
+        merge: {
+          strategy: "dash-audio",
+          manifestUrl: "https://v.redd.it/example/DASHPlaylist.mpd",
+        },
       });
     }
   });
