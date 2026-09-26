@@ -1,42 +1,65 @@
 # Handoff
 
-## Last completed task
-**SM-001 — SaveMingo Foundation**
-
-## Verified build
-- Main commit: `1ab3b08271338adc2851fadfc8b55c3fe9d26c7c`
-- Vercel URL: `https://save-mingo.vercel.app/`
-- CI: green
-- Health endpoint: healthy
-- Live UI smoke test: passed
-
-## Current product behavior
-The website is a functioning foundation UI:
-- SaveMingo branding is visible.
-- Invalid non-Instagram URLs show a clear validation error.
-- Valid Instagram URLs are recognized.
-- The UI explicitly states that the resolver is the next milestone.
-- No fake download success is shown.
-
-## Important production state
-`savemingo.com` has NOT been switched to this project yet.
-
-## Next task
+## Current milestone
 **SM-002 — Product UI / downloader state system**
 
+## Status
+Verified and ready to merge through PR #3.
+
+## Active branch
+`chatgpt/SM-002-product-ui`
+
+## Verified deployment
+- Deployment: `dpl_FGnFSsnVnbRRwAnXhFWMRuw4gVoj`
+- Branch alias: `https://save-mingo-git-chatgpt-sm-002-product-ui-hustler031s-projects.vercel.app`
+- CI: green
+- Runtime error/warning scan: clean
+
+## Delivered
+- `components/downloader/Downloader.tsx`
+  - idle
+  - validating
+  - validated
+  - error
+- `components/downloader/ResultCard.tsx`
+  - normalized future media result renderer
+- `lib/downloader/types.ts`
+  - resolver/UI contract types
+- `lib/downloader/validation.ts`
+  - centralized Instagram URL validation
+- `/instagram-downloader`
+  - dedicated tool landing page
+- shared header/footer
+- homepage rebuilt around reusable downloader
+
+## Smoke tests passed
+- homepage branding/navigation
+- non-Instagram link -> custom error
+- error code + request ID visible
+- Reel link -> validating -> recognized link
+- explicit no-resolver-yet state
+- Instagram downloader content sections
+- FAQ/footer
+- no broken navigation
+- no obvious overflow/overlap in tested viewport
+- no false download-success claim
+
+## Mobile note
+The automation runner could not switch to a device-emulation viewport. The implementation uses mobile-first single-column defaults with `sm`/`lg` expansion and was code-reviewed for narrow layouts. A real mobile device check remains useful before the custom-domain launch, but it is not a blocker for this internal milestone.
+
+## Next task
+**SM-003 — Resolver foundation**
+
 Suggested branch:
-`chatgpt/SM-002-product-ui` or `codex/SM-002-product-ui`
+`chatgpt/SM-003-instagram-resolver` or `codex/SM-003-instagram-resolver`
 
-Work:
-1. Build reusable downloader state components.
-2. Add dedicated Instagram downloader page shell.
-3. Define normalized frontend result types.
-4. Add loading, success-result, empty, and operational-error views.
-5. Keep resolver calls mocked/not connected until the resolver milestone.
-6. Run CI and live preview smoke tests.
+SM-003 should:
+1. Implement the normalized `POST /api/v1/resolve` boundary.
+2. Keep platform-specific logic isolated.
+3. Start with public Reel/video support.
+4. Return standardized SaveMingo errors/request IDs.
+5. Connect success/error output into the existing Downloader state machine.
+6. Add integration tests before claiming real download support.
 
-## Infrastructure blocker for full agent observability
-The ChatGPT Vercel connector currently cannot read the new SaveMingo Vercel project. The project exists and is publicly reachable, but the connector authorization must be extended to include it before agents can directly inspect its Vercel project settings/logs through that connector.
-
-## Rule
-Do not attach `savemingo.com` until the actual downloader is ready for launch.
+## Production rule
+Do not attach `savemingo.com` until real media resolution is working and audited.

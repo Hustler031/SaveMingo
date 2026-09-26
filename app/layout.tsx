@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   description:
     "SaveMingo is a clean, fast downloader for public social media content. Save it. Keep it.",
   applicationName: "SaveMingo",
-  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: "https://savemingo.com",
