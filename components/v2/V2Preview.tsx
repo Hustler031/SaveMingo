@@ -12,6 +12,14 @@ const platforms = [
     available: true,
   },
   {
+    title: "X / Twitter Downloader",
+    description: "Download supported public X videos, GIFs, photos, and multi-media posts.",
+    href: "/v2-preview/x-downloader",
+    mark: "X",
+    status: "Available",
+    available: true,
+  },
+  {
     title: "TikTok Downloader",
     description: "A simple short-form video workflow is planned next.",
     mark: "♪",
@@ -24,14 +32,6 @@ const platforms = [
     mark: "f",
     status: "Coming soon",
     available: false,
-  },
-  {
-    title: "X / Twitter Downloader",
-    description: "Download supported public X videos, GIFs, photos, and multi-media posts.",
-    href: "/v2-preview/x-downloader",
-    mark: "X",
-    status: "Available",
-    available: true,
   },
   {
     title: "Reddit Downloader",
