@@ -33,58 +33,58 @@ const menus: Record<
 > = {
   instagram: {
     label: "Instagram",
-    root: "/v2-preview/instagram-downloader",
-    activePrefixes: ["/v2-preview/instagram"],
+    root: "/instagram-downloader",
+    activePrefixes: ["/instagram"],
     hint: "Auto-detect the post type",
     items: [
-      ["/v2-preview/instagram-reels-downloader", "Reels Downloader"],
-      ["/v2-preview/instagram-video-downloader", "Video Downloader"],
-      ["/v2-preview/instagram-photo-downloader", "Photo Downloader"],
-      ["/v2-preview/instagram-carousel-downloader", "Carousel Downloader"],
+      ["/instagram-reels-downloader", "Reels Downloader"],
+      ["/instagram-video-downloader", "Video Downloader"],
+      ["/instagram-photo-downloader", "Photo Downloader"],
+      ["/instagram-carousel-downloader", "Carousel Downloader"],
     ],
   },
   x: {
     label: "X / Twitter",
-    root: "/v2-preview/x-downloader",
-    activePrefixes: ["/v2-preview/x-", "/v2-preview/twitter-"],
+    root: "/x-downloader",
+    activePrefixes: ["/x-", "/twitter-"],
     hint: "Videos, GIFs and images",
     items: [
-      ["/v2-preview/twitter-video-downloader", "Twitter Video Downloader"],
-      ["/v2-preview/twitter-gif-downloader", "Twitter GIF Downloader"],
-      ["/v2-preview/twitter-image-downloader", "Twitter Image Downloader"],
+      ["/twitter-video-downloader", "Twitter Video Downloader"],
+      ["/twitter-gif-downloader", "Twitter GIF Downloader"],
+      ["/twitter-image-downloader", "Twitter Image Downloader"],
     ],
   },
   pinterest: {
     label: "Pinterest",
-    root: "/v2-preview/pinterest-downloader",
-    activePrefixes: ["/v2-preview/pinterest"],
+    root: "/pinterest-downloader",
+    activePrefixes: ["/pinterest"],
     hint: "Videos, images and animated pins",
     items: [
-      ["/v2-preview/pinterest-video-downloader", "Video Downloader"],
-      ["/v2-preview/pinterest-image-downloader", "Image Downloader"],
-      ["/v2-preview/pinterest-gif-downloader", "GIF Downloader"],
+      ["/pinterest-video-downloader", "Video Downloader"],
+      ["/pinterest-image-downloader", "Image Downloader"],
+      ["/pinterest-gif-downloader", "GIF Downloader"],
     ],
   },
   reddit: {
     label: "Reddit",
-    root: "/v2-preview/reddit-downloader",
-    activePrefixes: ["/v2-preview/reddit"],
+    root: "/reddit-downloader",
+    activePrefixes: ["/reddit"],
     hint: "Videos, images, GIFs and galleries",
     items: [
-      ["/v2-preview/reddit-video-downloader", "Video + Sound Check"],
-      ["/v2-preview/reddit-image-downloader", "Image Downloader"],
-      ["/v2-preview/reddit-gif-downloader", "GIF Downloader"],
+      ["/reddit-video-downloader", "Video + Sound Check"],
+      ["/reddit-image-downloader", "Image Downloader"],
+      ["/reddit-gif-downloader", "GIF Downloader"],
     ],
   },
   tiktok: {
     label: "TikTok",
-    root: "/v2-preview/tiktok-downloader",
-    activePrefixes: ["/v2-preview/tiktok"],
+    root: "/tiktok-downloader",
+    activePrefixes: ["/tiktok"],
     hint: "Videos, photos and slideshows",
     items: [
-      ["/v2-preview/tiktok-video-downloader", "Video Downloader"],
-      ["/v2-preview/tiktok-photo-downloader", "Photo Downloader"],
-      ["/v2-preview/tiktok-slideshow-downloader", "Slideshow Downloader"],
+      ["/tiktok-video-downloader", "Video Downloader"],
+      ["/tiktok-photo-downloader", "Photo Downloader"],
+      ["/tiktok-slideshow-downloader", "Slideshow Downloader"],
     ],
   },
 };
@@ -94,7 +94,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
   const [dark, setDark] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
 
-  const homeActive = pathname === "/v2-preview";
+  const homeActive = pathname === "/";
 
   const themeStyle: V2ThemeStyle = dark
     ? {
@@ -136,7 +136,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
       <header className="relative z-30 border-b border-[var(--v2-border)] bg-[var(--v2-bg)]/92 backdrop-blur">
         <div className="mx-auto flex h-[72px] w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link
-            href="/v2-preview"
+            href="/"
             className="flex items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
           >
             <Image
@@ -174,7 +174,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
         >
           <div className="mx-auto flex h-[48px] w-full max-w-6xl items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none] sm:overflow-visible sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden">
             <Link
-              href="/v2-preview"
+              href="/"
               className={[
                 "relative shrink-0 rounded-lg px-3 py-2 text-xs font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
                 homeActive
@@ -241,46 +241,46 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
           <FooterGroup
             title="Instagram"
             items={[
-              ["/v2-preview/instagram-downloader", "All Instagram"],
-              ["/v2-preview/instagram-reels-downloader", "Reels"],
-              ["/v2-preview/instagram-video-downloader", "Videos"],
-              ["/v2-preview/instagram-photo-downloader", "Photos"],
+              ["/instagram-downloader", "All Instagram"],
+              ["/instagram-reels-downloader", "Reels"],
+              ["/instagram-video-downloader", "Videos"],
+              ["/instagram-photo-downloader", "Photos"],
             ]}
           />
           <FooterGroup
             title="X / Twitter"
             items={[
-              ["/v2-preview/x-downloader", "All X"],
-              ["/v2-preview/twitter-video-downloader", "Videos"],
-              ["/v2-preview/twitter-gif-downloader", "GIFs"],
-              ["/v2-preview/twitter-image-downloader", "Images"],
+              ["/x-downloader", "All X"],
+              ["/twitter-video-downloader", "Videos"],
+              ["/twitter-gif-downloader", "GIFs"],
+              ["/twitter-image-downloader", "Images"],
             ]}
           />
           <FooterGroup
             title="Pinterest"
             items={[
-              ["/v2-preview/pinterest-downloader", "All Pinterest"],
-              ["/v2-preview/pinterest-video-downloader", "Videos"],
-              ["/v2-preview/pinterest-image-downloader", "Images"],
-              ["/v2-preview/pinterest-gif-downloader", "GIFs"],
+              ["/pinterest-downloader", "All Pinterest"],
+              ["/pinterest-video-downloader", "Videos"],
+              ["/pinterest-image-downloader", "Images"],
+              ["/pinterest-gif-downloader", "GIFs"],
             ]}
           />
           <FooterGroup
             title="Reddit"
             items={[
-              ["/v2-preview/reddit-downloader", "All Reddit"],
-              ["/v2-preview/reddit-video-downloader", "Videos"],
-              ["/v2-preview/reddit-image-downloader", "Images"],
-              ["/v2-preview/reddit-gif-downloader", "GIFs"],
+              ["/reddit-downloader", "All Reddit"],
+              ["/reddit-video-downloader", "Videos"],
+              ["/reddit-image-downloader", "Images"],
+              ["/reddit-gif-downloader", "GIFs"],
             ]}
           />
           <FooterGroup
             title="TikTok"
             items={[
-              ["/v2-preview/tiktok-downloader", "All TikTok"],
-              ["/v2-preview/tiktok-video-downloader", "Videos"],
-              ["/v2-preview/tiktok-photo-downloader", "Photos"],
-              ["/v2-preview/tiktok-slideshow-downloader", "Slideshows"],
+              ["/tiktok-downloader", "All TikTok"],
+              ["/tiktok-video-downloader", "Videos"],
+              ["/tiktok-photo-downloader", "Photos"],
+              ["/tiktok-slideshow-downloader", "Slideshows"],
             ]}
           />
         </div>
