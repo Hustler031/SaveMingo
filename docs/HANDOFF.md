@@ -161,3 +161,49 @@ Before production:
 6. recheck an Instagram Reel and carousel on the same branch;
 7. only then mark X live-verified and proceed toward production integration.
 
+
+
+## SM-011 handoff — Pinterest, Reddit, and SEO clusters
+
+Current branch:
+`chatgpt/SM-011-x-pinterest-reddit-seo`
+
+Base:
+`chatgpt/SM-010-platform-isolation-x`
+
+### Source state
+The four-platform normalized architecture now contains:
+- Instagram adapter;
+- X/Twitter adapter;
+- Pinterest adapter;
+- Reddit adapter.
+
+A failure in one platform remains isolated behind the shared adapter registry.
+
+### UX / SEO preview
+The homepage accepts supported links across all four platform modules.
+Platform-level navigation keeps subpages inside dropdowns.
+X, Pinterest and Reddit now have search-intent subpage clusters.
+
+All `/v2-preview/*` routes remain `noindex` until owner review and real fixture smoke.
+
+### Local review order
+1. X regression: real public X video + image.
+2. Pinterest: real public video pin.
+3. Pinterest: real public image pin.
+4. Pinterest: one `pin.it` short link.
+5. Reddit: public Reddit-hosted video post.
+6. Reddit: public image/gallery post.
+7. Reddit: GIF/animated post if a stable fixture is available.
+8. Instagram regression: Reel + carousel.
+
+### Known Reddit limitation
+Do not claim video-with-sound yet. Reddit may separate video and audio. Automatic merge is not implemented in SM-011.
+
+### Promotion gate
+Only after real fixture testing:
+- change Pinterest/Reddit homepage badge from Testing to Available;
+- create/promote indexable production URLs and canonicals from the preview SEO cluster;
+- add production sitemap entries;
+- submit/index only verified pages.
+
