@@ -6,10 +6,11 @@ import { trackEvent } from "@/lib/analytics/events";
 import type {
   DownloaderPhase,
   DownloaderUiError,
+  Platform,
   ResolveResponse,
   ResolveSuccess,
 } from "@/lib/downloader/types";
-import { validateInstagramUrl } from "@/lib/downloader/validation";
+import { validateSupportedUrl } from "@/lib/downloader/validation";
 
 type DownloaderState = {
   phase: DownloaderPhase;
@@ -26,7 +27,11 @@ function createClientRequestId() {
   return "sm_ui_" + raw.slice(0, 10).toUpperCase();
 }
 
-export function V2Downloader() {
+export function V2Downloader({
+  platform = "auto",
+}: {
+  platform?: Platform | "auto";
+}) {
   const [url, setUrl] = useState("");
   const [state, setState] = useState<DownloaderState>({ phase: "idle" });
 
@@ -51,7 +56,7 @@ export function V2Downloader() {
       const error = {
         code: "SM-UI-401" as const,
         message:
-          "Clipboard access was blocked. Paste the Instagram link manually.",
+          "Clipboard access was blocked. Paste the link manually.",
         requestId: createClientRequestId(),
       };
 
@@ -66,7 +71,10 @@ export function V2Downloader() {
 
     await new Promise((resolve) => window.setTimeout(resolve, 120));
 
-    const validated = validateInstagramUrl(url);
+    const validated = validateSupportedUrl(
+      url,
+      platform === "auto" ? undefined : platform,
+    );
 
     if (!validated.ok) {
       trackEvent("resolve_failed", { error_code: validated.code });
@@ -150,7 +158,11 @@ export function V2Downloader() {
       >
         <div className="flex flex-col gap-3">
           <label htmlFor="v2-media-url" className="sr-only">
-            Instagram link
+            {platform === "x"
+              ? "X post link"
+              : platform === "instagram"
+                ? "Instagram link"
+                : "Instagram or X link"}
           </label>
 
           <div className="flex min-w-0 flex-1 items-center rounded-[17px] border border-[var(--v2-border)] bg-[var(--v2-surface-2)] px-3.5 transition focus-within:border-[var(--v2-accent)] focus-within:ring-2 focus-within:ring-[var(--v2-accent)]/15">
@@ -166,7 +178,13 @@ export function V2Downloader() {
                 setUrl(event.target.value);
                 resetFeedback();
               }}
-              placeholder="Paste an Instagram link"
+              placeholder={
+                platform === "x"
+                  ? "Paste an X or Twitter post link"
+                  : platform === "instagram"
+                    ? "Paste an Instagram link"
+                    : "Paste an Instagram or X link"
+              }
               className="h-14 min-w-0 flex-1 bg-transparent px-2.5 text-[15px] font-medium text-[var(--v2-text)] outline-none placeholder:text-[var(--v2-muted)]"
             />
             <button
@@ -205,7 +223,13 @@ export function V2Downloader() {
         {state.phase === "validating" && (
           <LoadingStatus
             title="Checking your link"
-            text="Checking that this is a supported public Instagram link."
+            text={
+              platform === "x"
+                ? "Checking that this is a supported public X post link."
+                : platform === "instagram"
+                  ? "Checking that this is a supported public Instagram link."
+                  : "Checking the platform and public link format."
+            }
           />
         )}
 
