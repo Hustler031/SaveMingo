@@ -136,7 +136,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
           aria-label="Primary navigation"
           className="border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/82"
         >
-          <div className="mx-auto flex h-[48px] w-full max-w-6xl items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none] sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden">
+          <div className="mx-auto flex h-[48px] w-full max-w-6xl items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none] sm:overflow-visible sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden">
             <Link
               href="/v2-preview"
               className={[
@@ -152,7 +152,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
               )}
             </Link>
 
-            <div className="relative flex items-center">
+            <div className="relative flex shrink-0 items-center">
               <Link
                 href="/v2-preview/instagram-downloader"
                 className={[
@@ -187,7 +187,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
               {instagramMenuOpen && (
                 <div
                   role="menu"
-                  className="absolute left-0 top-[42px] z-50 w-56 overflow-hidden rounded-2xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-1.5 shadow-[var(--v2-shadow)]"
+                  className="fixed left-1/2 top-[116px] z-50 w-56 -translate-x-1/2 overflow-hidden rounded-2xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-1.5 shadow-[var(--v2-shadow)] sm:absolute sm:left-0 sm:top-[42px] sm:translate-x-0"
                 >
                   <Link
                     href="/v2-preview/instagram-downloader"
