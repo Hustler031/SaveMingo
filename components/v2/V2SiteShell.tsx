@@ -19,21 +19,71 @@ type V2ThemeStyle = CSSProperties & {
   "--v2-shadow": string;
 };
 
-const instagramTools = [
-  ["/v2-preview/instagram-reels-downloader", "Reels Downloader"],
-  ["/v2-preview/instagram-video-downloader", "Video Downloader"],
-  ["/v2-preview/instagram-photo-downloader", "Photo Downloader"],
-  ["/v2-preview/instagram-carousel-downloader", "Carousel Downloader"],
-] as const;
+type MenuKey = "instagram" | "x" | "pinterest" | "reddit";
+
+const menus: Record<
+  MenuKey,
+  {
+    label: string;
+    root: string;
+    activePrefixes: string[];
+    hint: string;
+    items: Array<[string, string]>;
+  }
+> = {
+  instagram: {
+    label: "Instagram",
+    root: "/v2-preview/instagram-downloader",
+    activePrefixes: ["/v2-preview/instagram"],
+    hint: "Auto-detect the post type",
+    items: [
+      ["/v2-preview/instagram-reels-downloader", "Reels Downloader"],
+      ["/v2-preview/instagram-video-downloader", "Video Downloader"],
+      ["/v2-preview/instagram-photo-downloader", "Photo Downloader"],
+      ["/v2-preview/instagram-carousel-downloader", "Carousel Downloader"],
+    ],
+  },
+  x: {
+    label: "X / Twitter",
+    root: "/v2-preview/x-downloader",
+    activePrefixes: ["/v2-preview/x-", "/v2-preview/twitter-"],
+    hint: "Videos, GIFs and images",
+    items: [
+      ["/v2-preview/twitter-video-downloader", "Twitter Video Downloader"],
+      ["/v2-preview/twitter-gif-downloader", "Twitter GIF Downloader"],
+      ["/v2-preview/twitter-image-downloader", "Twitter Image Downloader"],
+    ],
+  },
+  pinterest: {
+    label: "Pinterest",
+    root: "/v2-preview/pinterest-downloader",
+    activePrefixes: ["/v2-preview/pinterest"],
+    hint: "Videos, images and animated pins",
+    items: [
+      ["/v2-preview/pinterest-video-downloader", "Video Downloader"],
+      ["/v2-preview/pinterest-image-downloader", "Image Downloader"],
+      ["/v2-preview/pinterest-gif-downloader", "GIF Downloader"],
+    ],
+  },
+  reddit: {
+    label: "Reddit",
+    root: "/v2-preview/reddit-downloader",
+    activePrefixes: ["/v2-preview/reddit"],
+    hint: "Videos, images, GIFs and galleries",
+    items: [
+      ["/v2-preview/reddit-video-downloader", "Video Downloader"],
+      ["/v2-preview/reddit-image-downloader", "Image Downloader"],
+      ["/v2-preview/reddit-gif-downloader", "GIF Downloader"],
+    ],
+  },
+};
 
 export function V2SiteShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [dark, setDark] = useState(false);
-  const [instagramMenuOpen, setInstagramMenuOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState<MenuKey | null>(null);
 
   const homeActive = pathname === "/v2-preview";
-  const instagramActive = pathname.startsWith("/v2-preview/instagram");
-  const xActive = pathname.startsWith("/v2-preview/x");
 
   const themeStyle: V2ThemeStyle = dark
     ? {
@@ -111,11 +161,11 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
           aria-label="Primary navigation"
           className="border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/82"
         >
-          <div className="mx-auto flex h-[48px] w-full max-w-6xl items-center gap-1 px-3 sm:px-6 lg:px-8">
+          <div className="mx-auto flex h-[48px] w-full max-w-6xl items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none] sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden">
             <Link
               href="/v2-preview"
               className={[
-                "relative rounded-lg px-3 py-2 text-xs font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
+                "relative shrink-0 rounded-lg px-3 py-2 text-xs font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
                 homeActive
                   ? "text-[var(--v2-text)]"
                   : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
@@ -127,82 +177,26 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
               )}
             </Link>
 
-            <div className="relative flex items-center">
-              <Link
-                href="/v2-preview/instagram-downloader"
-                className={[
-                  "relative rounded-l-lg py-2 pl-3 pr-2 text-xs font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
-                  instagramActive
-                    ? "text-[var(--v2-text)]"
-                    : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
-                ].join(" ")}
-              >
-                Instagram
-                {instagramActive && (
-                  <span className="absolute left-3 right-0 -bottom-[7px] h-0.5 rounded-full bg-[var(--v2-accent)]" />
-                )}
-              </Link>
+            {(Object.keys(menus) as MenuKey[]).map((key) => {
+              const menu = menus[key];
+              const active = menu.activePrefixes.some((prefix) =>
+                pathname.startsWith(prefix),
+              );
 
-              <button
-                type="button"
-                onClick={() => setInstagramMenuOpen((current) => !current)}
-                aria-expanded={instagramMenuOpen}
-                aria-haspopup="menu"
-                aria-label="Open Instagram downloader menu"
-                className={[
-                  "relative flex h-8 w-8 items-center justify-center rounded-r-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]",
-                  instagramActive
-                    ? "text-[var(--v2-text)]"
-                    : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
-                ].join(" ")}
-              >
-                <ChevronIcon open={instagramMenuOpen} />
-              </button>
-
-              {instagramMenuOpen && (
-                <div
-                  role="menu"
-                  className="absolute left-0 top-[42px] z-50 w-56 overflow-hidden rounded-2xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-1.5 shadow-[var(--v2-shadow)]"
-                >
-                  <Link
-                    href="/v2-preview/instagram-downloader"
-                    role="menuitem"
-                    className="block rounded-xl px-3 py-2.5 text-xs font-black transition hover:bg-[var(--v2-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
-                  >
-                    Instagram Downloader
-                    <span className="mt-0.5 block text-[10px] font-medium text-[var(--v2-muted)]">
-                      Auto-detect the post type
-                    </span>
-                  </Link>
-                  <div className="my-1 h-px bg-[var(--v2-border)]" />
-                  {instagramTools.map(([href, label]) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      role="menuitem"
-                      className="block rounded-xl px-3 py-2 text-xs font-bold text-[var(--v2-muted)] transition hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
-                    >
-                      {label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <Link
-              href="/v2-preview/x-downloader"
-              className={[
-                "relative rounded-lg px-3 py-2 text-xs font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
-                xActive
-                  ? "text-[var(--v2-text)]"
-                  : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
-              ].join(" ")}
-            >
-              X / Twitter
-              {xActive && (
-                <span className="absolute inset-x-3 -bottom-[7px] h-0.5 rounded-full bg-[var(--v2-accent)]" />
-              )}
-            </Link>
+              return (
+                <NavDropdown
+                  key={key}
+                  menuKey={key}
+                  menu={menu}
+                  active={active}
+                  open={openMenu === key}
+                  onToggle={() =>
+                    setOpenMenu((current) => (current === key ? null : key))
+                  }
+                  onNavigate={() => setOpenMenu(null)}
+                />
+              );
+            })}
           </div>
         </nav>
       </header>
@@ -210,7 +204,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
       <div className="relative z-10">{children}</div>
 
       <footer className="relative z-10 border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/45">
-        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-[1.2fr_1fr_0.8fr] sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-2 lg:grid-cols-5 sm:px-6 lg:px-8">
           <div>
             <div className="flex items-center gap-2">
               <Image
@@ -227,35 +221,50 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
             </p>
           </div>
 
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
-              Instagram
-            </p>
-            <div className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2 text-xs font-bold text-[var(--v2-muted)]">
-              <Link href="/v2-preview/instagram-downloader">All Instagram</Link>
-              <Link href="/v2-preview/instagram-reels-downloader">Reels</Link>
-              <Link href="/v2-preview/instagram-video-downloader">Videos</Link>
-              <Link href="/v2-preview/instagram-photo-downloader">Photos</Link>
-              <Link href="/v2-preview/instagram-carousel-downloader">Carousels</Link>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
-              X / Twitter
-            </p>
-            <div className="mt-3 grid gap-2 text-xs font-bold text-[var(--v2-muted)]">
-              <Link href="/v2-preview/x-downloader">X Downloader</Link>
-              <span>Videos</span>
-              <span>Photos & GIFs</span>
-            </div>
-          </div>
+          <FooterGroup
+            title="Instagram"
+            items={[
+              ["/v2-preview/instagram-downloader", "All Instagram"],
+              ["/v2-preview/instagram-reels-downloader", "Reels"],
+              ["/v2-preview/instagram-video-downloader", "Videos"],
+              ["/v2-preview/instagram-photo-downloader", "Photos"],
+            ]}
+          />
+          <FooterGroup
+            title="X / Twitter"
+            items={[
+              ["/v2-preview/x-downloader", "All X"],
+              ["/v2-preview/twitter-video-downloader", "Videos"],
+              ["/v2-preview/twitter-gif-downloader", "GIFs"],
+              ["/v2-preview/twitter-image-downloader", "Images"],
+            ]}
+          />
+          <FooterGroup
+            title="Pinterest"
+            items={[
+              ["/v2-preview/pinterest-downloader", "All Pinterest"],
+              ["/v2-preview/pinterest-video-downloader", "Videos"],
+              ["/v2-preview/pinterest-image-downloader", "Images"],
+              ["/v2-preview/pinterest-gif-downloader", "GIFs"],
+            ]}
+          />
+          <FooterGroup
+            title="Reddit"
+            items={[
+              ["/v2-preview/reddit-downloader", "All Reddit"],
+              ["/v2-preview/reddit-video-downloader", "Videos"],
+              ["/v2-preview/reddit-image-downloader", "Images"],
+              ["/v2-preview/reddit-gif-downloader", "GIFs"],
+            ]}
+          />
         </div>
 
         <div className="border-t border-[var(--v2-border)]">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-5 text-[10px] text-[var(--v2-muted)] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
             <span>Public links only.</span>
-            <span>Not affiliated with Instagram, Meta, X, or Twitter.</span>
+            <span>
+              Not affiliated with Instagram, Meta, X, Twitter, Pinterest, or Reddit.
+            </span>
           </div>
         </div>
       </footer>
@@ -263,11 +272,120 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
   );
 }
 
+function NavDropdown({
+  menuKey,
+  menu,
+  active,
+  open,
+  onToggle,
+  onNavigate,
+}: {
+  menuKey: MenuKey;
+  menu: (typeof menus)[MenuKey];
+  active: boolean;
+  open: boolean;
+  onToggle: () => void;
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="relative flex shrink-0 items-center">
+      <Link
+        href={menu.root}
+        onClick={onNavigate}
+        className={[
+          "relative rounded-l-lg py-2 pl-3 pr-2 text-xs font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
+          active
+            ? "text-[var(--v2-text)]"
+            : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
+        ].join(" ")}
+      >
+        {menu.label}
+        {active && (
+          <span className="absolute left-3 right-0 -bottom-[7px] h-0.5 rounded-full bg-[var(--v2-accent)]" />
+        )}
+      </Link>
+
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={"Open " + menu.label + " downloader menu"}
+        className={[
+          "relative flex h-8 w-8 items-center justify-center rounded-r-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]",
+          active
+            ? "text-[var(--v2-text)]"
+            : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
+        ].join(" ")}
+      >
+        <ChevronIcon open={open} />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute left-0 top-[42px] z-50 w-60 overflow-hidden rounded-2xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-1.5 shadow-[var(--v2-shadow)]"
+        >
+          <Link
+            href={menu.root}
+            onClick={onNavigate}
+            role="menuitem"
+            className="block rounded-xl px-3 py-2.5 text-xs font-black transition hover:bg-[var(--v2-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
+          >
+            {menu.label} Downloader
+            <span className="mt-0.5 block text-[10px] font-medium text-[var(--v2-muted)]">
+              {menu.hint}
+            </span>
+          </Link>
+          <div className="my-1 h-px bg-[var(--v2-border)]" />
+          {menu.items.map(([href, label]) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={onNavigate}
+              role="menuitem"
+              className="block rounded-xl px-3 py-2 text-xs font-bold text-[var(--v2-muted)] transition hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FooterGroup({
+  title,
+  items,
+}: {
+  title: string;
+  items: Array<[string, string]>;
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
+        {title}
+      </p>
+      <div className="mt-3 grid gap-2 text-xs font-bold text-[var(--v2-muted)]">
+        {items.map(([href, label]) => (
+          <Link key={href} href={href}>
+            {label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ChevronIcon({ open }: { open: boolean }) {
   return (
     <svg
       viewBox="0 0 20 20"
-      className={["h-3.5 w-3.5 transition-transform", open ? "rotate-180" : ""].join(" ")}
+      className={[
+        "h-3.5 w-3.5 transition-transform",
+        open ? "rotate-180" : "",
+      ].join(" ")}
       fill="none"
       aria-hidden="true"
     >
@@ -284,7 +402,12 @@ function ChevronIcon({ open }: { open: boolean }) {
 
 function MoonIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M20.1 15.7A8.4 8.4 0 0 1 8.3 3.9 8.5 8.5 0 1 0 20.1 15.7Z"
         stroke="currentColor"
@@ -298,7 +421,12 @@ function MoonIcon() {
 
 function SunIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      aria-hidden="true"
+    >
       <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="1.8" />
       <path
         d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"
