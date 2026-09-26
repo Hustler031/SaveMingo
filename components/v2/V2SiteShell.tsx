@@ -33,6 +33,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
 
   const homeActive = pathname === "/v2-preview";
   const instagramActive = pathname.startsWith("/v2-preview/instagram");
+  const xActive = pathname.startsWith("/v2-preview/x");
 
   const themeStyle: V2ThemeStyle = dark
     ? {
@@ -187,6 +188,21 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
                 </div>
               )}
             </div>
+
+            <Link
+              href="/v2-preview/x-downloader"
+              className={[
+                "relative rounded-lg px-3 py-2 text-xs font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
+                xActive
+                  ? "text-[var(--v2-text)]"
+                  : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
+              ].join(" ")}
+            >
+              X / Twitter
+              {xActive && (
+                <span className="absolute inset-x-3 -bottom-[7px] h-0.5 rounded-full bg-[var(--v2-accent)]" />
+              )}
+            </Link>
           </div>
         </nav>
       </header>
@@ -194,7 +210,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
       <div className="relative z-10">{children}</div>
 
       <footer className="relative z-10 border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/45">
-        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-[1.25fr_1fr] sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-[1.2fr_1fr_0.8fr] sm:px-6 lg:px-8">
           <div>
             <div className="flex items-center gap-2">
               <Image
@@ -223,12 +239,23 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
               <Link href="/v2-preview/instagram-carousel-downloader">Carousels</Link>
             </div>
           </div>
+
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
+              X / Twitter
+            </p>
+            <div className="mt-3 grid gap-2 text-xs font-bold text-[var(--v2-muted)]">
+              <Link href="/v2-preview/x-downloader">X Downloader</Link>
+              <span>Videos</span>
+              <span>Photos & GIFs</span>
+            </div>
+          </div>
         </div>
 
         <div className="border-t border-[var(--v2-border)]">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-5 text-[10px] text-[var(--v2-muted)] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
             <span>Public links only.</span>
-            <span>Not affiliated with Instagram or Meta.</span>
+            <span>Not affiliated with Instagram, Meta, X, or Twitter.</span>
           </div>
         </div>
       </footer>
