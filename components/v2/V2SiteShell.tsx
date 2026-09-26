@@ -19,7 +19,7 @@ type V2ThemeStyle = CSSProperties & {
   "--v2-shadow": string;
 };
 
-type MenuKey = "instagram" | "x" | "pinterest" | "reddit";
+type MenuKey = "instagram" | "x" | "pinterest" | "reddit" | "tiktok";
 
 const menus: Record<
   MenuKey,
@@ -74,6 +74,17 @@ const menus: Record<
       ["/v2-preview/reddit-video-downloader", "Video + Sound Check"],
       ["/v2-preview/reddit-image-downloader", "Image Downloader"],
       ["/v2-preview/reddit-gif-downloader", "GIF Downloader"],
+    ],
+  },
+  tiktok: {
+    label: "TikTok",
+    root: "/v2-preview/tiktok-downloader",
+    activePrefixes: ["/v2-preview/tiktok"],
+    hint: "Videos, photos and slideshows",
+    items: [
+      ["/v2-preview/tiktok-video-downloader", "Video Downloader"],
+      ["/v2-preview/tiktok-photo-downloader", "Photo Downloader"],
+      ["/v2-preview/tiktok-slideshow-downloader", "Slideshow Downloader"],
     ],
   },
 };
@@ -210,7 +221,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
       <div className="relative z-10">{children}</div>
 
       <footer className="relative z-10 border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/45">
-        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-2 lg:grid-cols-5 sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 sm:px-6 lg:px-8">
           <div>
             <div className="flex items-center gap-2">
               <Image
@@ -263,13 +274,22 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
               ["/v2-preview/reddit-gif-downloader", "GIFs"],
             ]}
           />
+          <FooterGroup
+            title="TikTok"
+            items={[
+              ["/v2-preview/tiktok-downloader", "All TikTok"],
+              ["/v2-preview/tiktok-video-downloader", "Videos"],
+              ["/v2-preview/tiktok-photo-downloader", "Photos"],
+              ["/v2-preview/tiktok-slideshow-downloader", "Slideshows"],
+            ]}
+          />
         </div>
 
         <div className="border-t border-[var(--v2-border)]">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-5 text-[10px] text-[var(--v2-muted)] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
             <span>Public links only.</span>
             <span>
-              Not affiliated with Instagram, Meta, X, Twitter, Pinterest, or Reddit.
+              Not affiliated with Instagram, Meta, X, Twitter, Pinterest, Reddit, or TikTok.
             </span>
           </div>
         </div>
