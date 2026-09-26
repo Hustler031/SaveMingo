@@ -199,11 +199,11 @@ const configs: Record<
 };
 
 const relatedTools = [
-  ["/v2-preview/instagram-downloader", "All Instagram"],
-  ["/v2-preview/instagram-reels-downloader", "Reels"],
-  ["/v2-preview/instagram-video-downloader", "Videos"],
-  ["/v2-preview/instagram-photo-downloader", "Photos"],
-  ["/v2-preview/instagram-carousel-downloader", "Carousels"],
+  ["/instagram-downloader", "All Instagram"],
+  ["/instagram-reels-downloader", "Reels"],
+  ["/instagram-video-downloader", "Videos"],
+  ["/instagram-photo-downloader", "Photos"],
+  ["/instagram-carousel-downloader", "Carousels"],
 ] as const;
 
 export function V2InstagramToolPage({ kind }: { kind: V2InstagramKind }) {
