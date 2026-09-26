@@ -42,9 +42,10 @@ const platforms = [
   },
   {
     title: "Pinterest Downloader",
-    description: "Pinterest media support can join the same SaveMingo experience later.",
+    description: "Video, image and GIF Pin support is prepared for approved Pinterest API access.",
+    href: "/v2-preview/pinterest-downloader",
     mark: "P",
-    status: "Planned",
+    status: "API setup",
     available: false,
   },
 ];
@@ -110,7 +111,7 @@ export function V2Preview() {
 
           <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {platforms.map((platform) =>
-              platform.available && platform.href ? (
+              platform.href ? (
                 <Link
                   key={platform.title}
                   href={platform.href}
