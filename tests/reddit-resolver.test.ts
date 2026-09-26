@@ -17,6 +17,52 @@ function redditPayload(data: Record<string, unknown>) {
 }
 
 describe("Reddit resolver", () => {
+  it("follows /r/subreddit/s/share-id to the canonical comments post", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 302,
+          headers: {
+            location:
+              "https://www.reddit.com/r/aww/comments/abc123/example_post/",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          redditPayload({
+            secure_media: {
+              reddit_video: {
+                fallback_url:
+                  "https://v.redd.it/example/DASH_720.mp4",
+                width: 1280,
+                height: 720,
+                is_gif: false,
+                has_audio: true,
+              },
+            },
+          }),
+          { status: 200 },
+        ),
+      );
+
+    const result = await resolveReddit(
+      "https://www.reddit.com/r/aww/s/nMEhJAPgdZ",
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      provider: "reddit-public-json",
+      contentType: "video",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(String(fetchMock.mock.calls[1]?.[0])).toContain(
+      "/r/aww/comments/abc123/example_post.json",
+    );
+  });
+
   it("normalizes a Reddit-hosted video track", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
