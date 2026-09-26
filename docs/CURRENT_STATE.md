@@ -309,3 +309,15 @@ Each platform label opens the generic page; its chevron opens intent-specific su
 
 Production/main remains untouched.
 
+
+
+### SM-011 follow-up — dropdown visibility + Reddit sound intent
+
+- Fixed platform dropdown menus being clipped by the horizontally scrollable navigation row. Menus now render as a header-level overlay outside the scroll container.
+- Reddit video results now expose source audio status from Reddit metadata:
+  - Sound detected in source;
+  - No sound detected;
+  - Sound status unknown.
+- The result card shows sound status before download and a clear notice after a Reddit video download begins when the source is silent/unknown or Reddit reports a separate audio stream.
+- Reddit video SEO now targets the exact high-intent phrase **Reddit Video Downloader with Sound** using the qualified H1/title **Reddit Video Downloader with Sound Check**.
+- This is intentionally not a claim that the current MP4 always contains merged audio. Reddit can store audio separately; automatic muxing remains a future capability.
