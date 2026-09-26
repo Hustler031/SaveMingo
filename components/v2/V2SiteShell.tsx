@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { type CSSProperties, type ReactNode, useState } from "react";
 
 type V2ThemeStyle = CSSProperties & {
@@ -18,16 +19,20 @@ type V2ThemeStyle = CSSProperties & {
   "--v2-shadow": string;
 };
 
-const navItems = [
-  ["/v2-preview", "Home"],
-  ["/v2-preview/instagram-downloader", "Instagram"],
-  ["/v2-preview/instagram-reels-downloader", "Reels"],
-  ["/v2-preview/instagram-photo-downloader", "Photos"],
-  ["/v2-preview/instagram-carousel-downloader", "Carousels"],
+const instagramTools = [
+  ["/v2-preview/instagram-reels-downloader", "Reels Downloader"],
+  ["/v2-preview/instagram-video-downloader", "Video Downloader"],
+  ["/v2-preview/instagram-photo-downloader", "Photo Downloader"],
+  ["/v2-preview/instagram-carousel-downloader", "Carousel Downloader"],
 ] as const;
 
 export function V2SiteShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [dark, setDark] = useState(false);
+  const [instagramMenuOpen, setInstagramMenuOpen] = useState(false);
+
+  const homeActive = pathname === "/v2-preview";
+  const instagramActive = pathname.startsWith("/v2-preview/instagram");
 
   const themeStyle: V2ThemeStyle = dark
     ? {
@@ -102,23 +107,86 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav
-          aria-label="Preview navigation"
-          className="border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/78"
+          aria-label="Primary navigation"
+          className="border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/82"
         >
-          <div className="mx-auto flex w-full max-w-6xl items-center gap-1 overflow-x-auto px-3 py-2 [scrollbar-width:none] sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden">
-            {navItems.map(([href, label]) => (
+          <div className="mx-auto flex h-[48px] w-full max-w-6xl items-center gap-1 px-3 sm:px-6 lg:px-8">
+            <Link
+              href="/v2-preview"
+              className={[
+                "relative rounded-lg px-3 py-2 text-xs font-black transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
+                homeActive
+                  ? "text-[var(--v2-text)]"
+                  : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
+              ].join(" ")}
+            >
+              Home
+              {homeActive && (
+                <span className="absolute inset-x-3 -bottom-[7px] h-0.5 rounded-full bg-[var(--v2-accent)]" />
+              )}
+            </Link>
+
+            <div className="relative flex items-center">
               <Link
-                key={href}
-                href={href}
-                className="shrink-0 rounded-lg px-3 py-2 text-xs font-extrabold text-[var(--v2-muted)] transition hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm"
+                href="/v2-preview/instagram-downloader"
+                className={[
+                  "relative rounded-l-lg py-2 pl-3 pr-2 text-xs font-extrabold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)] sm:text-sm",
+                  instagramActive
+                    ? "text-[var(--v2-text)]"
+                    : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
+                ].join(" ")}
               >
-                {label}
+                Instagram
+                {instagramActive && (
+                  <span className="absolute left-3 right-0 -bottom-[7px] h-0.5 rounded-full bg-[var(--v2-accent)]" />
+                )}
               </Link>
-            ))}
-            <span className="mx-1 h-4 w-px shrink-0 bg-[var(--v2-border)]" />
-            <span className="shrink-0 px-3 py-2 text-xs font-bold text-[var(--v2-muted)]/65 sm:text-sm">
-              More platforms soon
-            </span>
+
+              <button
+                type="button"
+                onClick={() => setInstagramMenuOpen((current) => !current)}
+                aria-expanded={instagramMenuOpen}
+                aria-haspopup="menu"
+                aria-label="Open Instagram downloader menu"
+                className={[
+                  "relative flex h-8 w-8 items-center justify-center rounded-r-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]",
+                  instagramActive
+                    ? "text-[var(--v2-text)]"
+                    : "text-[var(--v2-muted)] hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)]",
+                ].join(" ")}
+              >
+                <ChevronIcon open={instagramMenuOpen} />
+              </button>
+
+              {instagramMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute left-0 top-[42px] z-50 w-56 overflow-hidden rounded-2xl border border-[var(--v2-border)] bg-[var(--v2-surface)] p-1.5 shadow-[var(--v2-shadow)]"
+                >
+                  <Link
+                    href="/v2-preview/instagram-downloader"
+                    role="menuitem"
+                    className="block rounded-xl px-3 py-2.5 text-xs font-black transition hover:bg-[var(--v2-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
+                  >
+                    Instagram Downloader
+                    <span className="mt-0.5 block text-[10px] font-medium text-[var(--v2-muted)]">
+                      Auto-detect the post type
+                    </span>
+                  </Link>
+                  <div className="my-1 h-px bg-[var(--v2-border)]" />
+                  {instagramTools.map(([href, label]) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      role="menuitem"
+                      className="block rounded-xl px-3 py-2 text-xs font-bold text-[var(--v2-muted)] transition hover:bg-[var(--v2-surface-2)] hover:text-[var(--v2-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--v2-accent)]"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </nav>
       </header>
@@ -126,7 +194,7 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
       <div className="relative z-10">{children}</div>
 
       <footer className="relative z-10 border-t border-[var(--v2-border)] bg-[var(--v2-surface)]/45">
-        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-[1.2fr_1fr_1fr] sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-full max-w-6xl gap-7 px-4 py-9 sm:grid-cols-[1.25fr_1fr] sm:px-6 lg:px-8">
           <div>
             <div className="flex items-center gap-2">
               <Image
@@ -145,36 +213,45 @@ export function V2SiteShell({ children }: { children: ReactNode }) {
 
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
-              Instagram tools
+              Instagram
             </p>
-            <div className="mt-3 grid gap-2 text-xs font-bold text-[var(--v2-muted)]">
-              <Link href="/v2-preview/instagram-downloader">Instagram Downloader</Link>
-              <Link href="/v2-preview/instagram-reels-downloader">Reels Downloader</Link>
-              <Link href="/v2-preview/instagram-photo-downloader">Photo Downloader</Link>
-              <Link href="/v2-preview/instagram-carousel-downloader">Carousel Downloader</Link>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--v2-muted)]">
-              Preview status
-            </p>
-            <div className="mt-3 grid gap-2 text-xs text-[var(--v2-muted)]">
-              <span>Instagram · available</span>
-              <span>More platforms · planned</span>
-              <span>Public links only</span>
+            <div className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2 text-xs font-bold text-[var(--v2-muted)]">
+              <Link href="/v2-preview/instagram-downloader">All Instagram</Link>
+              <Link href="/v2-preview/instagram-reels-downloader">Reels</Link>
+              <Link href="/v2-preview/instagram-video-downloader">Videos</Link>
+              <Link href="/v2-preview/instagram-photo-downloader">Photos</Link>
+              <Link href="/v2-preview/instagram-carousel-downloader">Carousels</Link>
             </div>
           </div>
         </div>
 
         <div className="border-t border-[var(--v2-border)]">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-5 text-[10px] text-[var(--v2-muted)] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-            <span>SaveMingo V2 design preview.</span>
+            <span>Public links only.</span>
             <span>Not affiliated with Instagram or Meta.</span>
           </div>
         </div>
       </footer>
     </main>
+  );
+}
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      className={["h-3.5 w-3.5 transition-transform", open ? "rotate-180" : ""].join(" ")}
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="m5.5 7.5 4.5 4.5 4.5-4.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
