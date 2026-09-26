@@ -264,3 +264,12 @@ TikTok can return challenge/403 responses or change hydration JSON. Those failur
 
 Do not promote TikTok to Available or indexable production pages until real fixture testing passes.
 
+
+
+### Reddit share-link fix
+
+- Reddit's current mobile/share URL format `reddit.com/r/<subreddit>/s/<share-id>` is now accepted by validation.
+- Share URLs are not treated as canonical post URLs; the Reddit resolver follows the Reddit redirect first and only then builds the `.json` post request from the resulting `/comments/...` URL.
+- Regression tests cover the exact `/r/aww/s/...` pattern reported during local testing.
+- Note for hosted deployment: Reddit may apply stricter unauthenticated redirect blocking to datacenter/cloud IPs than to residential/local connections, so share-link behavior must also be checked on the eventual Cloudflare runtime.
+
