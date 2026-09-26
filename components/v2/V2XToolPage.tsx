@@ -60,8 +60,8 @@ export function V2XToolPage() {
               </h2>
             </div>
             <p className="max-w-md text-sm leading-6 text-[var(--v2-muted)]">
-              X is isolated from the Instagram resolver internally, while the
-              visible SaveMingo download experience stays consistent.
+              Videos, GIFs, photos, and multi-media posts use the same simple
+              copy, paste, and download flow.
             </p>
           </div>
 
@@ -93,8 +93,8 @@ export function V2XToolPage() {
             Copy. Paste. Download.
           </h2>
           <p className="mt-3 max-w-md text-sm leading-6 text-[var(--v2-muted)]">
-            X and Instagram share the same public SaveMingo API contract, but
-            each platform resolves independently behind it.
+            Three simple steps from a supported public X post link to the
+            available media.
           </p>
         </div>
 
