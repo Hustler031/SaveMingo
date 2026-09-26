@@ -8,6 +8,10 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function jsonRequest(path, init = {}) {
   const response = await fetch(base + path, {
     redirect: "follow",
@@ -26,6 +30,54 @@ async function jsonRequest(path, init = {}) {
   }
 
   return { response, data };
+}
+
+async function resolveInstagramWithRetry(label, url, attempts = 3) {
+  let last;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    last = await jsonRequest("/api/v1/resolve", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+
+    if (last.response.ok && last.data.success === true) {
+      if (attempt > 1) {
+        console.log("RECOVERED", label, "on attempt", attempt);
+      }
+      return last;
+    }
+
+    const code = last.data?.error?.code;
+    const transient =
+      last.response.status === 502 ||
+      last.response.status === 504 ||
+      code === "SM-IG-104" ||
+      code === "SM-IG-105" ||
+      code === "SM-API-201";
+
+    if (!transient || attempt === attempts) {
+      break;
+    }
+
+    console.log(
+      "RETRY",
+      label,
+      "attempt",
+      attempt,
+      "status",
+      last.response.status,
+      "code",
+      code || "unknown",
+      "requestId",
+      last.data?.requestId || "missing",
+    );
+
+    await sleep(1_500 * attempt);
+  }
+
+  return last;
 }
 
 async function main() {
@@ -77,12 +129,14 @@ async function main() {
   console.log("PASS invalid-url contract", invalid.data.error.code, invalid.data.requestId);
 
   const reelUrl = "https://www.instagram.com/reel/DH56yy7p3lZ/";
-  const reel = await jsonRequest("/api/v1/resolve", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ url: reelUrl }),
-  });
-  assert(reel.response.ok, "Reel resolve failed with " + reel.response.status);
+  const reel = await resolveInstagramWithRetry("reel", reelUrl);
+  assert(
+    reel.response.ok,
+    "Reel resolve failed with " +
+      reel.response.status +
+      " code=" +
+      (reel.data.error?.code || "unknown"),
+  );
   assert(reel.data.success === true, "Reel resolve returned failure");
   assert(Array.isArray(reel.data.media) && reel.data.media.length > 0, "Reel returned no media");
   assert(reel.data.media.some((item) => item.type === "video"), "Reel returned no video media");
@@ -94,15 +148,15 @@ async function main() {
   );
 
   const carouselUrl = "https://www.instagram.com/p/DcA6fTgIJ97/";
-  const carousel = await jsonRequest("/api/v1/resolve", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ url: carouselUrl }),
-  });
+  const carousel = await resolveInstagramWithRetry("carousel", carouselUrl);
   assert(
     carousel.response.ok,
-    "Carousel resolve failed with " + carousel.response.status +
-      " code=" + (carousel.data.error?.code || "unknown"),
+    "Carousel resolve failed with " +
+      carousel.response.status +
+      " code=" +
+      (carousel.data.error?.code || "unknown") +
+      " requestId=" +
+      (carousel.data.requestId || "missing"),
   );
   assert(carousel.data.success === true, "Carousel resolve returned failure");
   assert(
@@ -116,26 +170,54 @@ async function main() {
     carousel.data.requestId,
   );
 
-  const video = reel.data.media.find((item) => item.type === "video");
+  let video = reel.data.media.find((item) => item.type === "video");
   assert(video?.url, "No Reel media URL available for delivery test");
 
-  const mediaUrl =
-    base +
-    "/api/v1/media?src=" +
-    encodeURIComponent(video.url) +
-    "&name=cloudflare-smoke";
+  let mediaResponse;
+  let deliveryRequestId = "missing";
 
-  const controller = new AbortController();
-  const mediaResponse = await fetch(mediaUrl, {
-    headers: { Range: "bytes=0-1023" },
-    redirect: "manual",
-    signal: controller.signal,
-  });
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const mediaUrl =
+      base +
+      "/api/v1/media?src=" +
+      encodeURIComponent(video.url) +
+      "&name=cloudflare-smoke";
+
+    const controller = new AbortController();
+    mediaResponse = await fetch(mediaUrl, {
+      headers: { Range: "bytes=0-1023" },
+      redirect: "manual",
+      signal: controller.signal,
+    });
+
+    deliveryRequestId =
+      mediaResponse.headers.get("x-savemingo-request-id") || "missing";
+
+    if (mediaResponse.status === 200 || mediaResponse.status === 206) {
+      controller.abort();
+      break;
+    }
+
+    controller.abort();
+
+    if (attempt === 2) break;
+
+    console.log(
+      "RETRY media delivery",
+      "status",
+      mediaResponse.status,
+      "requestId",
+      deliveryRequestId,
+    );
+
+    const freshReel = await resolveInstagramWithRetry("reel-refresh", reelUrl, 2);
+    assert(freshReel.response.ok && freshReel.data.success, "Could not refresh Reel media URL");
+    video = freshReel.data.media.find((item) => item.type === "video");
+    assert(video?.url, "Refreshed Reel returned no video");
+  }
 
   const mediaType = mediaResponse.headers.get("content-type") || "";
   const disposition = mediaResponse.headers.get("content-disposition") || "";
-  const deliveryRequestId =
-    mediaResponse.headers.get("x-savemingo-request-id") || "missing";
 
   assert(
     mediaResponse.status === 200 || mediaResponse.status === 206,
@@ -155,7 +237,6 @@ async function main() {
     "Media response is missing attachment disposition",
   );
 
-  controller.abort();
   console.log(
     "PASS media delivery",
     mediaResponse.status,
