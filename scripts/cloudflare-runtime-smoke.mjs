@@ -67,6 +67,35 @@ function assertSeo(html, path, expectedTitleFragment) {
   );
 }
 
+async function assertLiveGaMeasurement() {
+  const response = await fetch(base + "/", { redirect: "follow" });
+  const html = await response.text();
+  const matches = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/g)];
+  const scriptUrls = [...new Set(matches.map((match) => match[1]))];
+
+  let found = html.includes("G-ZXK1PRVH6X");
+
+  for (const src of scriptUrls) {
+    if (found) break;
+
+    try {
+      const url = new URL(src, base).toString();
+      const scriptResponse = await fetch(url, { redirect: "follow" });
+      if (!scriptResponse.ok) continue;
+
+      const scriptText = await scriptResponse.text();
+      if (scriptText.includes("G-ZXK1PRVH6X")) {
+        found = true;
+      }
+    } catch {
+      // Ignore an individual asset failure; the assertion below is authoritative.
+    }
+  }
+
+  assert(found, "Live Worker bundles do not contain GA4 Measurement ID G-ZXK1PRVH6X");
+  console.log("PASS GA4 measurement bundle", "G-ZXK1PRVH6X");
+}
+
 async function resolveInstagramWithRetry(label, url, attempts = 3) {
   let last;
 
@@ -137,6 +166,8 @@ async function main() {
     assertSeo(page.html, path, expected);
     console.log("PASS SEO", path, page.response.status);
   }
+
+  await assertLiveGaMeasurement();
 
   const robots = await fetch(base + "/robots.txt");
   const robotsText = await robots.text();
