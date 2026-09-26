@@ -100,3 +100,59 @@ The aggregate resolver health endpoint is:
 ### Merge invariant
 
 Adding or repairing one platform must not require platform-specific changes inside another adapter. Any shared-contract change must remain backward-compatible or use a new API version, and regression tests for already-live platforms must pass before merge.
+
+
+## Reddit audio/video mux service
+
+Reddit native video can expose video and audio as separate DASH tracks.
+
+SaveMingo handles this without putting FFmpeg inside the Cloudflare Worker:
+
+```text
+Reddit resolver
+   ↓
+normalized MediaAsset
+   ├─ video URL
+   ├─ audioStatus = separate
+   └─ merge.manifestUrl
+          ↓
+V2 result card
+          ↓
+POST /api/v1/reddit/mux
+          ↓
+authenticated proxy
+          ↓
+isolated reddit-mux service
+   ├─ fetch DASH manifest
+   ├─ select best audio representation
+   ├─ download v.redd.it video + audio
+   ├─ ffmpeg -c copy mux
+   ├─ stream final MP4
+   └─ delete temporary files
+```
+
+### Failure behavior
+
+If the mux service is unavailable or FFmpeg fails:
+- the resolved Reddit result remains valid;
+- the user can still use **Download video only**;
+- the UI reports a safe merge failure;
+- Instagram, X, Pinterest, TikTok, and Reddit non-mux flows remain unaffected.
+
+### Runtime split
+
+Cloudflare Worker:
+- resolver;
+- validation;
+- request IDs/rate limits;
+- mux proxy;
+- final response streaming.
+
+Separate Node service:
+- DASH audio selection;
+- temporary input download;
+- FFmpeg mux;
+- temporary file cleanup.
+
+This boundary is mandatory because Cloudflare Workers do not provide a normal spawned-process FFmpeg runtime.
+
