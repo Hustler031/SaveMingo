@@ -73,3 +73,18 @@ Heavy media processing must not run inside the shared SaveMingo resolver or Clou
 - Processing services must validate upstream hosts independently, enforce size/time limits, use temporary storage only, and delete temporary media after each request.
 - Production processing services require authentication between SaveMingo and the service. Never commit production service tokens.
 
+## Production mux hosting rule
+
+For Reddit video-with-sound, Cloudflare-native hosting is the production
+default:
+
+- main SaveMingo site/API/resolvers stay on Cloudflare Workers;
+- `services/reddit-mux/` runs in an isolated Cloudflare Container owned by a
+  private Worker;
+- the main Worker reaches it only through a private Service Binding;
+- Render or another external host is not a fallback of convenience. Use one
+  only if a documented Cloudflare Container incompatibility is reproduced and
+  approved;
+- mux availability must never become a health dependency for the main site,
+  non-Reddit platforms, or Reddit video-only delivery.
+
