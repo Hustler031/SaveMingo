@@ -1,8 +1,12 @@
+param(
+  [string]$TargetPath = "/v2-preview"
+)
+
 $ErrorActionPreference = "Stop"
 
 Write-Host ""
-Write-Host "SaveMingo V2 preview startup" -ForegroundColor Magenta
-Write-Host "---------------------------"
+Write-Host "SaveMingo local preview startup" -ForegroundColor Magenta
+Write-Host "-------------------------------"
 
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
   Write-Host "Node.js is not installed or not available in PATH." -ForegroundColor Red
@@ -23,35 +27,50 @@ if (-not (Test-Path "node_modules")) {
   npm ci
 }
 
-$previewUrl = "http://localhost:3000/v2-preview"
+$baseUrl = "http://localhost:3000"
+$previewUrl = $baseUrl + $TargetPath
 
-Write-Host ""
-Write-Host "Starting Next.js dev server in a separate window..." -ForegroundColor Cyan
-Start-Process -FilePath "cmd.exe" -ArgumentList "/k", "npm run dev" -WorkingDirectory (Get-Location)
+function Test-SaveMingoUrl {
+  param([string]$Url)
 
-Write-Host "Waiting for SaveMingo..." -ForegroundColor DarkGray
-
-$ready = $false
-
-for ($attempt = 0; $attempt -lt 40; $attempt++) {
   try {
-    $response = Invoke-WebRequest -Uri $previewUrl -UseBasicParsing -TimeoutSec 2
-    if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500) {
+    $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 2
+    return $response.StatusCode -ge 200 -and $response.StatusCode -lt 500
+  } catch {
+    return $false
+  }
+}
+
+$ready = Test-SaveMingoUrl -Url $previewUrl
+
+if (-not $ready) {
+  Write-Host ""
+  Write-Host "Starting Next.js dev server in a separate window..." -ForegroundColor Cyan
+  Start-Process -FilePath "cmd.exe" -ArgumentList "/k", "npm run dev" -WorkingDirectory (Get-Location)
+
+  Write-Host "Waiting for SaveMingo..." -ForegroundColor DarkGray
+
+  for ($attempt = 0; $attempt -lt 40; $attempt++) {
+    Start-Sleep -Milliseconds 750
+
+    if (Test-SaveMingoUrl -Url $previewUrl) {
       $ready = $true
       break
     }
-  } catch {
-    Start-Sleep -Milliseconds 750
   }
+} else {
+  Write-Host ""
+  Write-Host "Existing SaveMingo dev server detected." -ForegroundColor Green
 }
 
 if ($ready) {
   Write-Host ""
-  Write-Host "SaveMingo V2 preview is ready:" -ForegroundColor Green
+  Write-Host "SaveMingo preview is ready:" -ForegroundColor Green
   Write-Host $previewUrl -ForegroundColor Cyan
   Write-Host ""
-  Write-Host "Instagram preview:" -ForegroundColor Green
-  Write-Host "http://localhost:3000/v2-preview/instagram-downloader" -ForegroundColor Cyan
+  Write-Host "Home:      $baseUrl/v2-preview" -ForegroundColor DarkGray
+  Write-Host "Instagram: $baseUrl/v2-preview/instagram-downloader" -ForegroundColor DarkGray
+  Write-Host "X:         $baseUrl/v2-preview/x-downloader" -ForegroundColor DarkGray
   Start-Process $previewUrl
 } else {
   Write-Host ""
