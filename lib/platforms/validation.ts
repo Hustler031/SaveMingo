@@ -3,6 +3,7 @@ import type { Platform } from "@/lib/downloader/types";
 import { detectPlatformFromUrl } from "@/lib/platforms/detect";
 import { validateInstagramUrl } from "@/lib/platforms/instagram/validation";
 import { validatePinterestUrl } from "@/lib/platforms/pinterest/validation";
+import { validateRedditUrl } from "@/lib/platforms/reddit/validation";
 import type { PlatformValidationResult } from "@/lib/platforms/types";
 import { validateXUrl } from "@/lib/platforms/x/validation";
 
@@ -26,7 +27,7 @@ export function validateSupportedUrl(
     return {
       ok: false,
       code: ERROR_CODES.INVALID_URL,
-      message: "SaveMingo currently supports public Instagram, X, and configured Pinterest Pin links.",
+      message: "SaveMingo currently supports public Instagram, X, configured Pinterest Pins, and configured Reddit posts.",
     };
   }
 
@@ -39,11 +40,14 @@ export function validateSupportedUrl(
           ? "Paste an Instagram link on this page."
           : expectedPlatform === "x"
             ? "Paste an X or Twitter post link on this page."
-            : "Paste a Pinterest Pin link on this page.",
+            : expectedPlatform === "pinterest"
+            ? "Paste a Pinterest Pin link on this page."
+            : "Paste a Reddit post link on this page.",
     };
   }
 
   if (detected === "instagram") return validateInstagramUrl(value);
   if (detected === "x") return validateXUrl(value);
-  return validatePinterestUrl(value);
+  if (detected === "pinterest") return validatePinterestUrl(value);
+  return validateRedditUrl(value);
 }
