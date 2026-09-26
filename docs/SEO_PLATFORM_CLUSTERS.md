@@ -58,13 +58,14 @@ Cluster:
 
 A major Reddit search intent is **Reddit video downloader with sound**.
 
-Current SaveMingo rule:
-- do not promise "with sound" yet;
+Current SaveMingo strategy:
+- target the exact intent with the qualified phrase **Reddit Video Downloader with Sound Check**;
 - Reddit often separates video and audio;
-- current implementation exposes the Reddit-hosted video track;
-- automatic audio/video merging must be implemented and live-verified before "with sound" is used as a product promise or primary SEO title.
+- read Reddit's public audio flag and show Sound detected / No sound detected / Unknown before download;
+- when Reddit reports separate audio, warn that the current downloaded video track may still be silent;
+- automatic audio/video merging must be implemented and live-verified before SaveMingo claims that every downloaded MP4 includes sound.
 
-The video page may answer the sound question honestly in FAQ/content so users understand the limitation.
+This lets the page match real user intent without making a false capability claim.
 
 ## Internal linking
 
