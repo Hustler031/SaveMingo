@@ -1,0 +1,22 @@
+export const ERROR_CODES = {
+  INVALID_URL: "SM-URL-001",
+  UNSUPPORTED_URL: "SM-URL-002",
+  INSTAGRAM_NOT_FOUND: "SM-IG-101",
+  INSTAGRAM_PRIVATE: "SM-IG-102",
+  INSTAGRAM_MEDIA_UNAVAILABLE: "SM-IG-103",
+  INSTAGRAM_RESOLVER_FAILED: "SM-IG-104",
+  INSTAGRAM_UPSTREAM_CHANGED: "SM-IG-105",
+  API_TIMEOUT: "SM-API-201",
+  API_RATE_LIMITED: "SM-API-202",
+  BACKEND_UNAVAILABLE: "SM-SRV-301",
+  FRONTEND_EXCEPTION: "SM-UI-401",
+} as const;
+
+export type SaveMingoErrorCode =
+  (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
+
+export type PublicError = {
+  code: SaveMingoErrorCode;
+  message: string;
+  requestId: string;
+};
