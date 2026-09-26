@@ -1,44 +1,56 @@
 # Handoff
 
 ## Current milestone
-**SM-005C — Cloudflare migration trial**
+**SM-005C — Cloudflare migration trial: LIVE VERIFIED**
 
 ## Branch
 `chatgpt/SM-005C-cloudflare`
 
+## Worker
+`https://savemingo.ashabup0.workers.dev`
+
 ## Completed
-- branched from latest SM-005 reliability work
-- ran official `vinext init --platform=cloudflare`
-- selected no data cache, no CDN cache, no Images binding, no global prerender
-- generated `vite.config.ts` and `wrangler.jsonc`
-- generated package lock
-- Cloudflare/vinext production build passed
-- normal Next.js path remains present
-- CI now validates both Next.js and vinext/Cloudflare builds
-- local Cloudflare Windows helper scripts added
+- SM-005 reliability hardening included
+- official vinext Cloudflare migration
+- `vite.config.ts` and `wrangler.jsonc`
+- locked package tree
+- Cloudflare-compatible Windows local helpers
+- CI validates Next.js + Cloudflare builds
+- Cloudflare GitHub integration connected
+- Worker deployed successfully
+- reusable live runtime smoke workflow added
 
-## Current blocker / owner action
-Cloudflare account authorization and repository connection are required before the first real Worker Preview can be deployed.
+## Live runtime verification
+GitHub Actions verified:
+- homepage `200`
+- health API healthy
+- resolver health healthy
+- invalid URL contract `SM-URL-001`
+- public Reel → 1 video
+- public carousel → 2 items
+- media delivery → `206 video/mp4`
 
-Preferred setup:
-- Cloudflare Workers & Pages
-- import GitHub repository `Hustler031/SaveMingo`
-- production branch: `main`
-- enable preview builds for non-main branches
-- do not connect `savemingo.com` yet
+Cloudflare egress therefore works for the current Instagram resolver and media-delivery architecture.
 
-## After account connection
-1. Deploy `chatgpt/SM-005C-cloudflare` preview.
-2. Verify health endpoints.
-3. Resolve a known public Reel.
-4. Resolve a public carousel.
-5. Verify same-origin media streaming/download.
-6. Inspect Worker runtime logs for request IDs/errors.
-7. Fix any Worker-runtime differences.
-8. Merge Cloudflare + SM-005 reliability work only after the above passes.
+## Immediate next step
+Merge PR #7 once final branch-head checks are green.
+
+After merge, the Cloudflare dashboard production branch must be changed from:
+`chatgpt/SM-005C-cloudflare`
+
+to:
+`main`
+
+Then verify the main deployment with the same runtime smoke.
+
+## Domain
+Do not attach/move `savemingo.com` yet.
 
 ## Rollback
-Keep Vercel untouched during the trial.
+Keep Vercel project `save-mingo` intact during early Cloudflare production.
 
-## Next after successful Cloudflare trial
-SM-006 — SEO + analytics.
+## Known audit item
+Independent live single-photo fixture remains pending; photo normalization is unit-verified.
+
+## Next milestone
+**SM-006 — SEO + analytics**
