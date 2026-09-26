@@ -60,20 +60,33 @@ function validHttps(raw: string | undefined) {
 }
 
 function extractScriptJson(html: string, id: string) {
-  const escaped = id.replace(/[.*+?^$()|[\]\\{}]/g, "\\$&");
-  const match = html.match(
-    new RegExp(
-      '<script[^>]+id=["\\']' +
-        escaped +
-        '["\\'][^>]*>([\\s\\S]*?)<\\/script>',
-      "i",
-    ),
-  );
+  const markers = ['id="' + id + '"', "id='" + id + "'"];
+  let markerIndex = -1;
 
-  if (!match?.[1]) return undefined;
+  for (const marker of markers) {
+    markerIndex = html.indexOf(marker);
+    if (markerIndex >= 0) break;
+  }
+
+  if (markerIndex < 0) return undefined;
+
+  const scriptStart = html.lastIndexOf("<script", markerIndex);
+  const contentStart = html.indexOf(">", markerIndex);
+  const contentEnd = html.indexOf("</script>", contentStart + 1);
+
+  if (
+    scriptStart < 0 ||
+    contentStart < 0 ||
+    contentEnd < 0 ||
+    contentEnd <= contentStart
+  ) {
+    return undefined;
+  }
 
   try {
-    return JSON.parse(match[1]) as Record<string, unknown>;
+    return JSON.parse(
+      html.slice(contentStart + 1, contentEnd),
+    ) as Record<string, unknown>;
   } catch {
     return undefined;
   }
