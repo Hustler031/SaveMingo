@@ -214,6 +214,7 @@ export async function GET(request: Request) {
   const filenameBase = safeMediaFilenameBase(
     requestUrl.searchParams.get("name"),
   );
+  const inline = requestUrl.searchParams.get("inline") === "1";
 
   if (!source || !isAllowedInstagramMediaUrl(source)) {
     logOperationalEvent("media-delivery", "warn", "media.rejected", {
@@ -345,7 +346,7 @@ export async function GET(request: Request) {
   const extension = extensionForContentType(contentType);
   const headers = new Headers({
     "Cache-Control": "private, no-store",
-    "Content-Disposition": `attachment; filename="${filenameBase}.${extension}"`,
+    "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${filenameBase}.${extension}"`,
     "Content-Type": contentType || "application/octet-stream",
     "Cross-Origin-Resource-Policy": "same-origin",
     "X-Content-Type-Options": "nosniff",
