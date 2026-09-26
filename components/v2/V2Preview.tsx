@@ -79,8 +79,8 @@ export function V2Preview() {
           <span className="text-[var(--v2-accent)]">find online.</span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-balance text-[15px] leading-6 text-[var(--v2-muted)] sm:text-base">
-          Instagram and X are working now. Pinterest, Reddit, and TikTok are
-          in local testing, with more platforms planned later.
+          Instagram and X are ready for launch. Pinterest, Reddit, and TikTok
+          stay staged until their production runtime checks are complete.
         </p>
 
         <div className="mt-6 sm:mt-7">
