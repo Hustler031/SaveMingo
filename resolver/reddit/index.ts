@@ -235,7 +235,9 @@ function normalizeGallery(post: RedditPostData) {
   return media;
 }
 
-function normalizeVideo(post: RedditPostData) {
+function normalizeVideo(
+  post: RedditPostData,
+): { asset: MediaAsset; contentType: RedditContentType } | undefined {
   const video =
     post.secure_media?.reddit_video ??
     post.media?.reddit_video ??
@@ -270,7 +272,7 @@ function normalizeVideo(post: RedditPostData) {
   };
 }
 
-function normalizeGif(post: RedditPostData) {
+function normalizeGif(post: RedditPostData): MediaAsset | undefined {
   const variant =
     post.preview?.images?.[0]?.variants?.mp4?.source ??
     post.preview?.images?.[0]?.variants?.gif?.source;
@@ -289,7 +291,7 @@ function normalizeGif(post: RedditPostData) {
   };
 }
 
-function normalizeSingleImage(post: RedditPostData) {
+function normalizeSingleImage(post: RedditPostData): MediaAsset | undefined {
   const direct = decodeReddit(post.url_overridden_by_dest ?? post.url);
 
   if (direct?.startsWith("https://")) {
