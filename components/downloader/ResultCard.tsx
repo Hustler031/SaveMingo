@@ -6,7 +6,7 @@ type ResultCardProps = {
 
 export function ResultCard({ result }: ResultCardProps) {
   return (
-    <section className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-[var(--shadow)] sm:p-6">
+    <section className="rounded-[28px] border border-neutral-200 bg-white p-5 text-left shadow-[var(--shadow)] sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 pb-4">
         <div>
           <p className="text-xs font-black tracking-[0.12em] text-[var(--accent-strong)] uppercase">
@@ -17,7 +17,7 @@ export function ResultCard({ result }: ResultCardProps) {
             {result.media.length === 1 ? "item" : "items"} ready
           </h2>
         </div>
-        <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-bold text-neutral-600">
+        <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-bold capitalize text-neutral-600">
           {result.contentType}
         </span>
       </div>
@@ -29,32 +29,41 @@ export function ResultCard({ result }: ResultCardProps) {
             className="rounded-[22px] border border-neutral-200 bg-neutral-50 p-4"
           >
             <div className="flex items-center justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-black text-neutral-950">
                   {item.type === "video" ? "Video" : "Photo"} {index + 1}
                 </p>
                 <p className="mt-1 text-xs text-neutral-500">
-                  {[item.quality, item.width && item.height
-                    ? `${item.width}×${item.height}`
-                    : null]
+                  {[
+                    item.quality,
+                    item.width && item.height
+                      ? `${item.width}×${item.height}`
+                      : null,
+                  ]
                     .filter(Boolean)
                     .join(" · ") || "Available media"}
                 </p>
               </div>
               <a
                 href={item.url}
-                className="rounded-xl bg-neutral-950 px-4 py-2.5 text-xs font-black text-white transition hover:bg-neutral-800"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 rounded-xl bg-neutral-950 px-4 py-2.5 text-xs font-black text-white transition hover:bg-neutral-800"
               >
-                Download
+                Open media
               </a>
             </div>
           </article>
         ))}
       </div>
 
-      <p className="mt-4 font-mono text-[11px] text-neutral-400">
-        Request {result.requestId}
-      </p>
+      <div className="mt-4 flex flex-col gap-1 text-[11px] text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
+        <p>
+          Direct public media result. Guaranteed download delivery is a later
+          transport step.
+        </p>
+        <p className="font-mono">Request {result.requestId}</p>
+      </div>
     </section>
   );
 }
