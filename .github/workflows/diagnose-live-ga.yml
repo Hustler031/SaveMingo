@@ -1,0 +1,67 @@
+name: Diagnose Live GA Assets
+
+on:
+  push:
+    branches:
+      - "diag/live-ga-assets"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Inspect live Worker assets
+        env:
+          BASE_URL: https://savemingo.ashabup0.workers.dev
+          GA_ID: G-ZXK1PRVH6X
+        run: |
+          node <<'NODE'
+          const base = process.env.BASE_URL.replace(/\/$/, "");
+          const ga = process.env.GA_ID;
+          const res = await fetch(base + "/");
+          const html = await res.text();
+          console.log("HOME", res.status, "bytes", html.length);
+          console.log("HTML_HAS_GA", html.includes(ga));
+          console.log("HTML_HAS_GTAG", html.includes("googletagmanager") || html.includes("gtag("));
+
+          const refs = new Set();
+          for (const m of html.matchAll(/(?:src|href)=["']([^"']+)["']/g)) {
+            const value = m[1].replaceAll("&amp;", "&");
+            if (
+              value.includes("_next") ||
+              /\.(?:js|mjs)(?:\?|$)/i.test(value) ||
+              value.includes("chunks")
+            ) refs.add(new URL(value, base).toString());
+          }
+
+          console.log("ASSET_COUNT", refs.size);
+          let found = false;
+          let i = 0;
+          for (const url of refs) {
+            i++;
+            try {
+              const r = await fetch(url);
+              const text = await r.text();
+              const hasGa = text.includes(ga);
+              const hasAnalyticsWords =
+                text.includes("savemingo:analytics") ||
+                text.includes("googletagmanager.com/gtag/js") ||
+                text.includes("paste_clicked") ||
+                text.includes("resolve_started");
+              console.log("ASSET", i, r.status, hasGa ? "HAS_GA" : "-", hasAnalyticsWords ? "HAS_ANALYTICS" : "-", url);
+              if (hasGa) found = true;
+            } catch (error) {
+              console.log("ASSET_ERROR", url, String(error));
+            }
+          }
+
+          console.log("FOUND_GA_IN_REFERENCED_ASSETS", found);
+          if (!found) {
+            console.log("HTML_PREFIX");
+            console.log(html.slice(0, 5000));
+          }
+          NODE
