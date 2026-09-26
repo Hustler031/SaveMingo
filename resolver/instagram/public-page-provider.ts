@@ -1,4 +1,5 @@
-import { ERROR_CODES, type SaveMingoErrorCode } from "@/lib/errors";\nimport { RELIABILITY_POLICY } from "@/lib/reliability/policy";
+import { ERROR_CODES, type SaveMingoErrorCode } from "@/lib/errors";
+import { RELIABILITY_POLICY } from "@/lib/reliability/policy";
 import type {
   InstagramContentType,
   MediaAsset,
@@ -9,9 +10,6 @@ import {
   type ParsedInstagramPage,
 } from "@/resolver/instagram/parse";
 
-const RELIABILITY_POLICY.instagram.maxRedirects = 3;
-const RELIABILITY_POLICY.instagram.maxHtmlBytes = 5_000_000;
-const RELIABILITY_POLICY.instagram.fetchTimeoutMs = 10_000;
 
 type ProviderDebug = {
   htmlLength: number;
