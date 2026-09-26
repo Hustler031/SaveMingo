@@ -36,9 +36,9 @@ describe("Instagram media URL allow-list", () => {
 });
 
 describe("media download helpers", () => {
-  it("sanitizes filenames", () => {
+  it("sanitizes filenames and strips traversal-style leading dots", () => {
     expect(safeMediaFilenameBase("../../my reel 😎 01")).toBe(
-      "..-..-my-reel-01",
+      "my-reel-01",
     );
   });
 
