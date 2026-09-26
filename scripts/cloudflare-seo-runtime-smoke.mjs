@@ -161,7 +161,7 @@ async function main() {
     const robotsText = await robots.text();
     assert(robots.ok, "robots.txt failed");
     assert(robotsText.includes("sitemap.xml"), "robots.txt missing sitemap");
-    assert(robotsText.includes("/v2-preview/"), "robots.txt must block legacy preview");
+    assert(!robotsText.includes("/v2-preview/"), "robots.txt should not block legacy preview redirects");
     console.log("PASS robots.txt", robots.status);
 
     const sitemap = await fetch(base + "/sitemap.xml");
@@ -183,10 +183,15 @@ async function main() {
     console.log("PASS sitemap indexability partition", sitemap.status);
 
     const preview = await fetch(base + "/v2-preview", { redirect: "manual" });
-    const previewHtml = await preview.text();
-    assert(preview.ok, "legacy preview route failed");
-    assert(/noindex/i.test(previewHtml), "legacy preview route must remain noindex");
-    console.log("PASS legacy preview noindex", preview.status);
+    assert(
+      preview.status === 307 || preview.status === 308,
+      "legacy preview route must redirect, got " + preview.status,
+    );
+    assert(
+      preview.headers.get("location") === "/",
+      "legacy preview route must redirect to production home",
+    );
+    console.log("PASS legacy preview redirect", preview.status);
 
     console.log("ALL LOCAL CLOUDFLARE SEO ROUTES PASSED");
   } catch (error) {
