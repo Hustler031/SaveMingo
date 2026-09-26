@@ -218,3 +218,94 @@ Live-verification gate:
 
 Production remains untouched while SM-009/SM-010 are under review.
 
+
+
+## SM-011 — X SEO cluster + Pinterest + Reddit
+
+Status: **IMPLEMENTED / CI VERIFIED / PINTEREST + REDDIT LIVE FIXTURE TESTING PENDING**
+
+Branch:
+`chatgpt/SM-011-x-pinterest-reddit-seo`
+
+Stacked on:
+`chatgpt/SM-010-platform-isolation-x`
+
+### X / Twitter SEO cluster
+Preview routes:
+- `/v2-preview/x-downloader`
+- `/v2-preview/twitter-video-downloader`
+- `/v2-preview/twitter-gif-downloader`
+- `/v2-preview/twitter-image-downloader`
+
+The generic X page remains broad; subpages target video, GIF, and image intent without duplicating extraction logic.
+
+### Pinterest
+Implemented isolated Pinterest adapter/resolver:
+- public `pinterest.com/pin/...` validation;
+- `pin.it` short-link handling;
+- public-page metadata resolver;
+- Pinterest-specific error namespace `SM-PIN-xxx`;
+- Pinterest timeout/size policy;
+- media delivery restricted to `pinimg.com`;
+- independent health endpoint;
+- unit coverage for video/image metadata resolution.
+
+Preview routes:
+- `/v2-preview/pinterest-downloader`
+- `/v2-preview/pinterest-video-downloader`
+- `/v2-preview/pinterest-image-downloader`
+- `/v2-preview/pinterest-gif-downloader`
+
+Pinterest is labelled **Testing** until real public video/image fixtures pass locally.
+
+### Reddit
+Implemented isolated Reddit adapter/resolver:
+- public Reddit post validation;
+- `redd.it` short-link normalization;
+- public Reddit JSON post metadata;
+- Reddit-hosted video track support;
+- single-image support;
+- gallery support;
+- GIF/animated preview support;
+- Reddit-specific error namespace `SM-RD-xxx`;
+- Reddit timeout/size policy;
+- media delivery restricted to Reddit CDN roots;
+- independent health endpoint;
+- unit coverage for video and gallery normalization.
+
+Preview routes:
+- `/v2-preview/reddit-downloader`
+- `/v2-preview/reddit-video-downloader`
+- `/v2-preview/reddit-image-downloader`
+- `/v2-preview/reddit-gif-downloader`
+
+Important limitation:
+- Reddit often stores native video and audio separately.
+- Current SaveMingo Reddit resolver exposes the available Reddit-hosted video track.
+- Automatic audio/video merging is **not yet implemented**.
+- Do not advertise "Reddit video downloader with sound" as a product promise until merging is implemented and live-verified.
+
+### SEO research implementation
+Search-intent route strategy is documented in:
+`docs/SEO_PLATFORM_CLUSTERS.md`
+
+Preview routes remain `noindex`. Promote them to indexable production routes only after platform functionality is live-verified.
+
+### Navigation
+Top row now uses platform-level navigation:
+- Home
+- Instagram ▾
+- X / Twitter ▾
+- Pinterest ▾
+- Reddit ▾
+
+Each platform label opens the generic page; its chevron opens intent-specific subpages.
+
+### Local launchers
+- `START_SAVEMINGO_V2.cmd`
+- `START_SAVEMINGO_X.cmd`
+- `START_SAVEMINGO_PINTEREST.cmd`
+- `START_SAVEMINGO_REDDIT.cmd`
+
+Production/main remains untouched.
+
