@@ -223,7 +223,7 @@ export function V2InstagramToolPage({ kind }: { kind: V2InstagramKind }) {
         </p>
 
         <div className="mt-6 sm:mt-7">
-          <V2Downloader />
+          <V2Downloader platform="instagram" />
         </div>
       </section>
 
