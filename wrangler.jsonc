@@ -16,5 +16,8 @@
       "binding": "REDDIT_MUX",
       "service": "savemingo-reddit-mux"
     }
-  ]
+  ],
+  "observability": {
+    "enabled": true
+  }
 }
