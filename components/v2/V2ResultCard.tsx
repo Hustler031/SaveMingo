@@ -44,6 +44,8 @@ function platformLabel(platform: ResolveSuccess["platform"]) {
       return "Pinterest";
     case "reddit":
       return "Reddit";
+    case "tiktok":
+      return "TikTok";
   }
 }
 
