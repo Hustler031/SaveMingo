@@ -447,8 +447,8 @@ export function V2PlatformToolPage({ kind }: { kind: V2PlatformPageKind }) {
             Copy. Paste. Download.
           </h2>
           <p className="mt-3 max-w-md text-sm leading-6 text-[var(--v2-muted)]">
-            The page is specific to this search intent, while the same isolated
-            platform adapter handles the actual public media resolution.
+            Three simple steps from the public post or pin link to the available
+            media on your device.
           </p>
         </div>
 
