@@ -5,14 +5,18 @@ import {
   isAllowedInstagramMediaUrl,
   safeMediaFilenameBase,
 } from "@/lib/media-url";
+import { logOperationalEvent } from "@/lib/observability";
+import { RELIABILITY_POLICY } from "@/lib/reliability/policy";
+import {
+  checkRequestRateLimit,
+  rateLimitHeaders,
+} from "@/lib/reliability/rate-limit";
 import { createRequestId } from "@/lib/request-id";
+import { APP_VERSION } from "@/lib/system";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_REDIRECTS = 3;
-const MAX_DECLARED_BYTES = 250 * 1024 * 1024;
-const FETCH_TIMEOUT_MS = 20_000;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36";
 
@@ -24,29 +28,12 @@ function mediaHost(raw: string) {
   }
 }
 
-function logMedia(
-  level: "info" | "warn" | "error",
-  payload: Record<string, unknown>,
-) {
-  const line = JSON.stringify({
-    service: "media-delivery",
-    ...payload,
-  });
-
-  if (level === "error") {
-    console.error(line);
-  } else if (level === "warn") {
-    console.warn(line);
-  } else {
-    console.info(line);
-  }
-}
-
 function errorResponse(
   requestId: string,
   status: number,
   code: string,
   message: string,
+  extraHeaders: Record<string, string> = {},
 ) {
   return NextResponse.json(
     {
@@ -63,6 +50,8 @@ function errorResponse(
         "Cache-Control": "no-store",
         "X-Content-Type-Options": "nosniff",
         "X-SaveMingo-Request-Id": requestId,
+        "X-SaveMingo-Version": APP_VERSION,
+        ...extraHeaders,
       },
     },
   );
@@ -85,7 +74,11 @@ async function fetchAllowedMedia(
 ) {
   let currentUrl = new URL(sourceUrl);
 
-  for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount++) {
+  for (
+    let redirectCount = 0;
+    redirectCount <= RELIABILITY_POLICY.media.maxRedirects;
+    redirectCount++
+  ) {
     if (!isAllowedInstagramMediaUrl(currentUrl.toString())) {
       return {
         ok: false as const,
@@ -101,25 +94,31 @@ async function fetchAllowedMedia(
         method: "GET",
         redirect: "manual",
         cache: "no-store",
-        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+        signal: AbortSignal.timeout(
+          RELIABILITY_POLICY.media.fetchTimeoutMs,
+        ),
         headers: requestHeaders(range, true),
       });
 
-      // Some Meta CDN edges reject hotlink-style Referer headers while the
-      // same signed public URL succeeds with ordinary browser fetch headers.
       if (response.status === 401 || response.status === 403) {
-        logMedia("warn", {
-          event: "media.retry_without_referer",
-          requestId,
-          host: currentUrl.hostname,
-          upstreamStatus: response.status,
-        });
+        logOperationalEvent(
+          "media-delivery",
+          "warn",
+          "media.retry_without_referer",
+          {
+            requestId,
+            host: currentUrl.hostname,
+            upstreamStatus: response.status,
+          },
+        );
 
         response = await fetch(currentUrl, {
           method: "GET",
           redirect: "manual",
           cache: "no-store",
-          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+          signal: AbortSignal.timeout(
+            RELIABILITY_POLICY.media.fetchTimeoutMs,
+          ),
           headers: requestHeaders(range, false),
         });
       }
@@ -139,7 +138,10 @@ async function fetchAllowedMedia(
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get("location");
 
-      if (!location || redirectCount === MAX_REDIRECTS) {
+      if (
+        !location ||
+        redirectCount === RELIABILITY_POLICY.media.maxRedirects
+      ) {
         return {
           ok: false as const,
           reason: "blocked-redirect" as const,
@@ -189,6 +191,24 @@ async function fetchAllowedMedia(
 export async function GET(request: Request) {
   const startedAt = Date.now();
   const requestId = createRequestId();
+  const rateLimit = checkRequestRateLimit("media", request);
+  const limitHeaders = rateLimitHeaders(rateLimit);
+
+  if (!rateLimit.allowed) {
+    logOperationalEvent("media-delivery", "warn", "media.rate_limited", {
+      requestId,
+      durationMs: Date.now() - startedAt,
+    });
+
+    return errorResponse(
+      requestId,
+      429,
+      ERROR_CODES.API_RATE_LIMITED,
+      "Too many download requests from this network. Try again shortly.",
+      limitHeaders,
+    );
+  }
+
   const requestUrl = new URL(request.url);
   const source = requestUrl.searchParams.get("src");
   const filenameBase = safeMediaFilenameBase(
@@ -196,8 +216,7 @@ export async function GET(request: Request) {
   );
 
   if (!source || !isAllowedInstagramMediaUrl(source)) {
-    logMedia("warn", {
-      event: "media.rejected",
+    logOperationalEvent("media-delivery", "warn", "media.rejected", {
       requestId,
       sourceHost: source ? mediaHost(source) : "missing",
       reason: "invalid-source",
@@ -209,6 +228,7 @@ export async function GET(request: Request) {
       400,
       ERROR_CODES.INVALID_URL,
       "This media URL is not allowed for SaveMingo delivery.",
+      limitHeaders,
     );
   }
 
@@ -219,8 +239,7 @@ export async function GET(request: Request) {
   );
 
   if (!upstream.ok) {
-    logMedia("warn", {
-      event: "media.failed",
+    logOperationalEvent("media-delivery", "warn", "media.failed", {
       requestId,
       sourceHost: mediaHost(source),
       upstreamHost: upstream.host,
@@ -238,6 +257,7 @@ export async function GET(request: Request) {
         504,
         ERROR_CODES.API_TIMEOUT,
         "The media server took too long to respond.",
+        limitHeaders,
       );
     }
 
@@ -250,6 +270,7 @@ export async function GET(request: Request) {
         403,
         ERROR_CODES.INVALID_URL,
         "The media server redirected outside SaveMingo’s allowed CDN list.",
+        limitHeaders,
       );
     }
 
@@ -258,6 +279,7 @@ export async function GET(request: Request) {
       502,
       ERROR_CODES.INSTAGRAM_RESOLVER_FAILED,
       "SaveMingo could not stream this media from Instagram.",
+      limitHeaders,
     );
   }
 
@@ -271,21 +293,26 @@ export async function GET(request: Request) {
     !normalizedType.startsWith("image/") &&
     normalizedType !== "application/octet-stream"
   ) {
-    logMedia("warn", {
-      event: "media.invalid_content_type",
-      requestId,
-      sourceHost: mediaHost(source),
-      upstreamHost: upstream.host,
-      upstreamStatus: response.status,
-      upstreamContentType: contentType,
-      durationMs: Date.now() - startedAt,
-    });
+    logOperationalEvent(
+      "media-delivery",
+      "warn",
+      "media.invalid_content_type",
+      {
+        requestId,
+        sourceHost: mediaHost(source),
+        upstreamHost: upstream.host,
+        upstreamStatus: response.status,
+        upstreamContentType: contentType,
+        durationMs: Date.now() - startedAt,
+      },
+    );
 
     return errorResponse(
       requestId,
       502,
       ERROR_CODES.INSTAGRAM_UPSTREAM_CHANGED,
       "Instagram returned an unexpected media format.",
+      limitHeaders,
     );
   }
 
@@ -296,10 +323,9 @@ export async function GET(request: Request) {
 
   if (
     Number.isFinite(contentLength) &&
-    contentLength > MAX_DECLARED_BYTES
+    contentLength > RELIABILITY_POLICY.media.maxDeclaredBytes
   ) {
-    logMedia("warn", {
-      event: "media.too_large",
+    logOperationalEvent("media-delivery", "warn", "media.too_large", {
       requestId,
       sourceHost: mediaHost(source),
       upstreamHost: upstream.host,
@@ -312,6 +338,7 @@ export async function GET(request: Request) {
       413,
       ERROR_CODES.INSTAGRAM_MEDIA_UNAVAILABLE,
       "This media item is larger than SaveMingo’s current delivery limit.",
+      limitHeaders,
     );
   }
 
@@ -323,6 +350,8 @@ export async function GET(request: Request) {
     "Cross-Origin-Resource-Policy": "same-origin",
     "X-Content-Type-Options": "nosniff",
     "X-SaveMingo-Request-Id": requestId,
+    "X-SaveMingo-Version": APP_VERSION,
+    ...limitHeaders,
   });
 
   for (const name of [
@@ -338,8 +367,7 @@ export async function GET(request: Request) {
     }
   }
 
-  logMedia("info", {
-    event: "media.success",
+  logOperationalEvent("media-delivery", "info", "media.success", {
     requestId,
     sourceHost: mediaHost(source),
     upstreamHost: upstream.host,

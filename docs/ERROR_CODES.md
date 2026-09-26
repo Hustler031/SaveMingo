@@ -11,10 +11,11 @@
 | SM-IG-105 | Upstream response changed |
 | SM-API-201 | API timeout |
 | SM-API-202 | Rate limited |
+| SM-API-203 | Request payload too large |
 | SM-SRV-301 | Backend unavailable |
 | SM-UI-401 | Frontend exception |
 
-Operational errors should eventually include a code and request ID:
+Operational errors should include a code and request ID:
 
 ```text
 SM-IG-104

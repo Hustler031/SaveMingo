@@ -1,42 +1,56 @@
 # Handoff
 
 ## Current milestone
-**SM-004 — Photo + carousel + download delivery**
+**SM-005C — Cloudflare migration trial: LIVE VERIFIED**
 
-## Branch / PR
-- branch: `chatgpt/SM-004-photo-carousel-download`
-- PR: `#5`
+## Branch
+`chatgpt/SM-005C-cloudflare`
 
-## Implemented
-- photo normalization
-- ordered mixed carousel normalization
-- restricted Meta CDN allow-list
-- same-origin media streaming
-- byte-range forwarding
-- safe filenames/content types
-- Download buttons
-- structured transport logs
+## Worker
+`https://savemingo.ashabup0.workers.dev`
 
-## Live proof
-Vercel preview logs confirmed:
-- Reel resolver success
-- Carousel resolver success
-- repeated `GET /api/v1/media 200` responses
-- `video/mp4` streamed through SaveMingo
-- example successful media request IDs include `sm_CA333937B8`, `sm_D593FCB4B2`, `sm_50CBF5D502`
+## Completed
+- SM-005 reliability hardening included
+- official vinext Cloudflare migration
+- `vite.config.ts` and `wrangler.jsonc`
+- locked package tree
+- Cloudflare-compatible Windows local helpers
+- CI validates Next.js + Cloudflare builds
+- Cloudflare GitHub integration connected
+- Worker deployed successfully
+- reusable live runtime smoke workflow added
 
-## Important transport finding
-Instagram signed CDN URLs can intermittently return 403. The media route now:
-1. validates the source hostname against `cdninstagram.com` / `fbcdn.net`
-2. retries 401/403 once without the Instagram Referer
-3. validates every redirect
-4. emits sanitized diagnostics only
-5. never stores media permanently
+## Live runtime verification
+GitHub Actions verified:
+- homepage `200`
+- health API healthy
+- resolver health healthy
+- invalid URL contract `SM-URL-001`
+- public Reel → 1 video
+- public carousel → 2 items
+- media delivery → `206 video/mp4`
 
-## Verification limitation
-A stable live single-photo fixture could not be independently confirmed during this audit; sample shortcodes sourced from third-party documentation returned `SM-IG-105`. Photo normalization itself has passing unit coverage.
+Cloudflare egress therefore works for the current Instagram resolver and media-delivery architecture.
+
+## Immediate next step
+Merge PR #7 once final branch-head checks are green.
+
+After merge, the Cloudflare dashboard production branch must be changed from:
+`chatgpt/SM-005C-cloudflare`
+
+to:
+`main`
+
+Then verify the main deployment with the same runtime smoke.
+
+## Domain
+Do not attach/move `savemingo.com` yet.
+
+## Rollback
+Keep Vercel project `save-mingo` intact during early Cloudflare production.
+
+## Known audit item
+Independent live single-photo fixture remains pending; photo normalization is unit-verified.
 
 ## Next milestone
-**SM-005 — Reliability / monitoring hardening**
-
-Start from `main` after PR #5 is merged.
+**SM-006 — SEO + analytics**

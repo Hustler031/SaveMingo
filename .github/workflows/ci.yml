@@ -16,7 +16,7 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -26,9 +26,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install locked dependencies
+        run: npm ci
 
       - name: Typecheck
         run: npm run typecheck
@@ -39,5 +40,8 @@ jobs:
       - name: Test
         run: npm run test
 
-      - name: Build
+      - name: Build Next.js fallback
         run: npm run build
+
+      - name: Build Cloudflare Worker
+        run: npm run build:vinext
