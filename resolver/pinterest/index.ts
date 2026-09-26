@@ -221,7 +221,6 @@ export async function resolvePinterest(sourceUrl: string) {
 
   if (!page.ok) {
     return {
-      ok: false as const,
       provider: "pinterest-public-page",
       ...page,
     };
