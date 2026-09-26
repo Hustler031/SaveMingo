@@ -6,7 +6,7 @@ const platforms = [
   {
     title: "Instagram Downloader",
     description: "Download supported public Reels, videos, photos, and carousel posts.",
-    href: "/v2-preview/instagram-downloader",
+    href: "/instagram-downloader",
     mark: "IG",
     status: "Available",
     available: true,
@@ -14,7 +14,7 @@ const platforms = [
   {
     title: "X / Twitter Downloader",
     description: "Download supported public X videos, GIFs, photos, and multi-media posts.",
-    href: "/v2-preview/x-downloader",
+    href: "/x-downloader",
     mark: "X",
     status: "Available",
     available: true,
@@ -22,7 +22,7 @@ const platforms = [
   {
     title: "Pinterest Downloader",
     description: "Download supported public Pinterest video and image pins from pin links.",
-    href: "/v2-preview/pinterest-downloader",
+    href: "/pinterest-downloader",
     mark: "P",
     status: "Testing",
     available: true,
@@ -30,7 +30,7 @@ const platforms = [
   {
     title: "Reddit Downloader",
     description: "Download supported Reddit-hosted videos, images, GIFs, and galleries.",
-    href: "/v2-preview/reddit-downloader",
+    href: "/reddit-downloader",
     mark: "r/",
     status: "Testing",
     available: true,
@@ -38,7 +38,7 @@ const platforms = [
   {
     title: "TikTok Downloader",
     description: "Download supported public TikTok videos, photos, and slideshow posts.",
-    href: "/v2-preview/tiktok-downloader",
+    href: "/tiktok-downloader",
     mark: "♪",
     status: "Testing",
     available: true,
