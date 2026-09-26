@@ -488,6 +488,7 @@ function normalizeVideo(
     post.preview?.reddit_video_preview;
 
   const url = decodeReddit(video?.fallback_url);
+  const dashUrl = decodeReddit(video?.dash_url);
 
   if (!url?.startsWith("https://")) return undefined;
 
@@ -509,6 +510,15 @@ function normalizeVideo(
           : video?.has_audio === false
             ? "none"
             : "unknown",
+      merge:
+        !video?.is_gif &&
+        video?.has_audio === true &&
+        dashUrl?.startsWith("https://")
+          ? {
+              strategy: "dash-audio",
+              manifestUrl: dashUrl,
+            }
+          : undefined,
     },
     contentType: video?.is_gif
       ? ("gif" as RedditContentType)
