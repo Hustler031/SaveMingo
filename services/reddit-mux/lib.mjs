@@ -29,7 +29,7 @@ export function decodeXml(value) {
 
 function attrValue(tag, name) {
   const quoted = tag.match(
-    new RegExp(name + "\\s*=\\s*[\\"']([^\\"']+)[\\"']", "i"),
+    new RegExp(name + "\\s*=\\s*[\"']([^\"']+)[\"']", "i"),
   );
 
   return quoted?.[1];
