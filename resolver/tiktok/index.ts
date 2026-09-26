@@ -173,23 +173,23 @@ function normalizeTikTokItem(item: TikTokItem) {
   const images = item.imagePost?.images ?? [];
 
   if (images.length > 0) {
-    const media: MediaAsset[] = images
-      .map((image, index) => {
-        const url = validHttps(
-          firstUrl(image.imageURL) ?? firstUrl(image.displayImage),
-        );
+    const media: MediaAsset[] = [];
 
-        if (!url) return null;
+    images.forEach((image, index) => {
+      const url = validHttps(
+        firstUrl(image.imageURL) ?? firstUrl(image.displayImage),
+      );
 
-        return {
-          id: "tiktok-photo-" + String(index + 1),
-          type: "image" as const,
-          url,
-          thumbnailUrl: url,
-          quality: "Source",
-        };
-      })
-      .filter((item): item is MediaAsset => item !== null);
+      if (!url) return;
+
+      media.push({
+        id: "tiktok-photo-" + String(index + 1),
+        type: "image",
+        url,
+        thumbnailUrl: url,
+        quality: "Source",
+      });
+    });
 
     if (media.length > 0) {
       return {
