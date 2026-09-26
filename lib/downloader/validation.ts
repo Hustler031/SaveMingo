@@ -21,6 +21,10 @@ const INSTAGRAM_HOSTS = new Set([
   "www.instagr.am",
 ]);
 
+export function isInstagramHost(hostname: string) {
+  return INSTAGRAM_HOSTS.has(hostname.toLowerCase());
+}
+
 function detectContentType(pathname: string): InstagramContentType {
   const parts = pathname
     .split("/")
@@ -83,7 +87,7 @@ export function validateInstagramUrl(
     };
   }
 
-  if (!INSTAGRAM_HOSTS.has(parsed.hostname.toLowerCase())) {
+  if (!isInstagramHost(parsed.hostname)) {
     return {
       ok: false,
       code: ERROR_CODES.INVALID_URL,
