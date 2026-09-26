@@ -132,6 +132,7 @@ export function V2Downloader({
     }
 
     trackEvent("resolve_started", {
+      platform: validated.platform,
       content_type: validated.contentType,
     });
 
@@ -153,6 +154,7 @@ export function V2Downloader({
 
       if (!payload.success) {
         trackEvent("resolve_failed", {
+          platform: validated.platform,
           error_code: payload.error.code,
           content_type: validated.contentType,
         });
@@ -169,6 +171,7 @@ export function V2Downloader({
       }
 
       trackEvent("resolve_success", {
+        platform: payload.platform,
         content_type: payload.contentType,
         media_count: payload.media.length,
       });
