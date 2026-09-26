@@ -39,6 +39,15 @@ const REDDIT_HOSTS = new Set([
   "i.redd.it",
 ]);
 
+const TIKTOK_HOSTS = new Set([
+  "tiktok.com",
+  "www.tiktok.com",
+  "m.tiktok.com",
+  "vm.tiktok.com",
+  "vt.tiktok.com",
+  "v.tiktok.com",
+]);
+
 export function isInstagramHost(hostname: string) {
   return INSTAGRAM_HOSTS.has(hostname.toLowerCase());
 }
@@ -59,6 +68,11 @@ export function isRedditHost(hostname: string) {
   return REDDIT_HOSTS.has(hostname.toLowerCase());
 }
 
+export function isTikTokHost(hostname: string) {
+  const host = hostname.toLowerCase();
+  return TIKTOK_HOSTS.has(host) || host.endsWith(".tiktok.com");
+}
+
 export function detectPlatformFromUrl(rawValue: string): Platform | null {
   try {
     const parsed = new URL(rawValue.trim());
@@ -67,6 +81,7 @@ export function detectPlatformFromUrl(rawValue: string): Platform | null {
     if (isXHost(parsed.hostname)) return "x";
     if (isPinterestHost(parsed.hostname)) return "pinterest";
     if (isRedditHost(parsed.hostname)) return "reddit";
+    if (isTikTokHost(parsed.hostname)) return "tiktok";
 
     return null;
   } catch {

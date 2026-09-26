@@ -5,6 +5,19 @@ import { RELIABILITY_POLICY } from "@/lib/reliability/policy";
 
 const USER_AGENT =
   "SaveMingo/0.4 public-media-resolver (+https://savemingo.com)";
+const BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36";
+
+let cachedAnonymousSession:
+  | {
+      cookie: string;
+      expiresAt: number;
+    }
+  | undefined;
+
+export function __resetRedditAnonymousSessionForTests() {
+  cachedAnonymousSession = undefined;
+}
 
 type RedditVideo = {
   fallback_url?: string;
@@ -74,7 +87,218 @@ function decodeReddit(value: string | undefined) {
   return value?.replace(/&amp;/g, "&");
 }
 
-async function resolveRedditCanonical(sourceUrl: string) {
+function isCanonicalRedditPost(url: URL) {
+  const host = url.hostname.toLowerCase();
+
+  if (
+    host !== "www.reddit.com" &&
+    host !== "reddit.com" &&
+    host !== "old.reddit.com" &&
+    host !== "new.reddit.com"
+  ) {
+    return false;
+  }
+
+  return url.pathname.split("/").filter(Boolean).includes("comments");
+}
+
+function isRedditSharePath(url: URL) {
+  const parts = url.pathname.split("/").filter(Boolean);
+  const shareIndex = parts.indexOf("s");
+
+  return shareIndex >= 0 && Boolean(parts[shareIndex + 1]);
+}
+
+function cookieValue(setCookie: string | null, name: string) {
+  if (!setCookie) return undefined;
+
+  const escaped = name.replace(/[.*+?^$()|[\]\\{}]/g, "\\$&");
+  const match = setCookie.match(
+    new RegExp("(?:^|[,;]\\s*)" + escaped + "=([^;,\\s]+)", "i"),
+  );
+
+  return match?.[1];
+}
+
+function mergeCookieHeaders(...headers: Array<string | undefined>) {
+  const jar = new Map<string, string>();
+
+  for (const header of headers) {
+    if (!header) continue;
+
+    for (const part of header.split(";")) {
+      const trimmed = part.trim();
+      const separator = trimmed.indexOf("=");
+
+      if (separator <= 0) continue;
+
+      const name = trimmed.slice(0, separator).trim();
+      const value = trimmed.slice(separator + 1).trim();
+
+      if (name && value) jar.set(name, value);
+    }
+  }
+
+  jar.set("over18", "1");
+  jar.set("intl_splash", "false");
+
+  return [...jar.entries()]
+    .map(([name, value]) => name + "=" + value)
+    .join("; ");
+}
+
+function cookiesFromResponse(response: Response) {
+  const setCookie = response.headers.get("set-cookie");
+  const names = [
+    "loid",
+    "token_v2",
+    "edgebucket",
+    "csrf_token",
+    "session_tracker",
+  ];
+
+  const pairs = names
+    .map((name) => {
+      const value = cookieValue(setCookie, name);
+      return value ? name + "=" + value : undefined;
+    })
+    .filter((value): value is string => Boolean(value));
+
+  return mergeCookieHeaders(pairs.join("; "));
+}
+
+function redditRequestHeaders(
+  cookie: string | undefined,
+  accept: string,
+  browserLike = false,
+) {
+  return {
+    "User-Agent": browserLike ? BROWSER_USER_AGENT : USER_AGENT,
+    Accept: accept,
+    "Accept-Language": "en-US,en;q=0.9",
+    ...(cookie ? { Cookie: cookie } : {}),
+  };
+}
+
+async function primeRedditAnonymousSession(sourceUrl: string) {
+  if (
+    cachedAnonymousSession &&
+    cachedAnonymousSession.expiresAt > Date.now()
+  ) {
+    return cachedAnonymousSession.cookie;
+  }
+
+  let cookie = mergeCookieHeaders();
+
+  try {
+    const oldReddit = await fetch("https://old.reddit.com/", {
+      method: "GET",
+      redirect: "manual",
+      cache: "no-store",
+      signal: AbortSignal.timeout(RELIABILITY_POLICY.reddit.fetchTimeoutMs),
+      headers: redditRequestHeaders(
+        undefined,
+        "text/html,application/xhtml+xml,*/*;q=0.8",
+        true,
+      ),
+    });
+
+    cookie = mergeCookieHeaders(
+      cookie,
+      cookiesFromResponse(oldReddit),
+    );
+  } catch {
+    // Shreddit bootstrap below is the primary fallback.
+  }
+
+  try {
+    const source = new URL(sourceUrl);
+    const slug = source.pathname.replace(/^\/+/, "").replace(/\/+$/, "");
+    const bootstrap = new URL(
+      "https://www.reddit.com/svc/shreddit/" + slug,
+    );
+
+    bootstrap.searchParams.set("seeker-session", "false");
+    bootstrap.searchParams.set("render-mode", "partial");
+    bootstrap.searchParams.set("referer", sourceUrl);
+
+    const response = await fetch(bootstrap, {
+      method: "GET",
+      redirect: "manual",
+      cache: "no-store",
+      signal: AbortSignal.timeout(RELIABILITY_POLICY.reddit.fetchTimeoutMs),
+      headers: redditRequestHeaders(
+        cookie,
+        "text/vnd.reddit.partial+html,text/html;q=0.9,*/*;q=0.8",
+        true,
+      ),
+    });
+
+    cookie = mergeCookieHeaders(
+      cookie,
+      cookiesFromResponse(response),
+    );
+  } catch {
+    // A missing bootstrap cookie is handled by the actual post request.
+  }
+
+  cachedAnonymousSession = {
+    cookie,
+    expiresAt: Date.now() + 8 * 60 * 1000,
+  };
+
+  return cookie;
+}
+
+async function parseRedditForbidden(response: Response) {
+  let body = "";
+
+  try {
+    body = await response.text();
+  } catch {
+    // Keep the generic result below.
+  }
+
+  try {
+    const parsed = JSON.parse(body) as {
+      reason?: string;
+      message?: string;
+      error?: number;
+    };
+
+    if (parsed.reason === "private" || parsed.reason === "quarantined") {
+      return {
+        code: ERROR_CODES.REDDIT_PRIVATE,
+        message:
+          parsed.reason === "quarantined"
+            ? "This Reddit community requires account access before its media can be read."
+            : "This Reddit post or community is private.",
+        diagnostic: "upstream-access-restricted",
+        debug: {
+          upstreamStatus: response.status,
+          reason: parsed.reason,
+        },
+      };
+    }
+  } catch {
+    // Reddit often returns an HTML block page for generic anonymous 403s.
+  }
+
+  return {
+    code: ERROR_CODES.REDDIT_RESOLVER_FAILED,
+    message:
+      "Reddit blocked this anonymous media lookup. SaveMingo can retry after refreshing its public Reddit session.",
+    diagnostic: "anonymous-api-blocked",
+    debug: {
+      upstreamStatus: response.status,
+    },
+  };
+}
+
+async function resolveRedditCanonical(
+  sourceUrl: string,
+  cookie: string,
+) {
   let current = new URL(sourceUrl);
 
   for (
@@ -84,12 +308,7 @@ async function resolveRedditCanonical(sourceUrl: string) {
   ) {
     const host = current.hostname.toLowerCase();
 
-    if (
-      host === "www.reddit.com" ||
-      host === "reddit.com" ||
-      host === "old.reddit.com" ||
-      host === "new.reddit.com"
-    ) {
+    if (isCanonicalRedditPost(current)) {
       return { ok: true as const, url: current };
     }
 
@@ -99,6 +318,21 @@ async function resolveRedditCanonical(sourceUrl: string) {
         code: ERROR_CODES.REDDIT_RESOLVER_FAILED,
         message: "Reddit redirected outside its supported public web hosts.",
         diagnostic: "cross-host-redirect",
+      };
+    }
+
+    if (
+      (host === "www.reddit.com" ||
+        host === "reddit.com" ||
+        host === "old.reddit.com" ||
+        host === "new.reddit.com") &&
+      !isRedditSharePath(current)
+    ) {
+      return {
+        ok: false as const,
+        code: ERROR_CODES.REDDIT_RESOLVER_FAILED,
+        message: "This Reddit URL is not a supported public post or share link.",
+        diagnostic: "non-post-reddit-url",
       };
     }
 
@@ -112,10 +346,11 @@ async function resolveRedditCanonical(sourceUrl: string) {
         signal: AbortSignal.timeout(
           RELIABILITY_POLICY.reddit.fetchTimeoutMs,
         ),
-        headers: {
-          "User-Agent": USER_AGENT,
-          Accept: "text/html,*/*;q=0.8",
-        },
+        headers: redditRequestHeaders(
+          cookie,
+          "text/html,application/xhtml+xml,*/*;q=0.8",
+          true,
+        ),
       });
     } catch (error) {
       const timeout =
@@ -151,6 +386,15 @@ async function resolveRedditCanonical(sourceUrl: string) {
 
       current = new URL(location, current);
       continue;
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      const blocked = await parseRedditForbidden(response);
+
+      return {
+        ok: false as const,
+        ...blocked,
+      };
     }
 
     return {
@@ -328,7 +572,8 @@ function normalizeSingleImage(post: RedditPostData): MediaAsset | undefined {
 }
 
 export async function resolveReddit(sourceUrl: string) {
-  const canonical = await resolveRedditCanonical(sourceUrl);
+  let cookie = await primeRedditAnonymousSession(sourceUrl);
+  const canonical = await resolveRedditCanonical(sourceUrl, cookie);
 
   if (!canonical.ok) {
     return {
@@ -340,16 +585,34 @@ export async function resolveReddit(sourceUrl: string) {
   let response: Response;
 
   try {
-    response = await fetch(redditJsonUrl(canonical.url), {
+    const jsonUrl = redditJsonUrl(canonical.url);
+
+    response = await fetch(jsonUrl, {
       method: "GET",
       redirect: "follow",
       cache: "no-store",
       signal: AbortSignal.timeout(RELIABILITY_POLICY.reddit.fetchTimeoutMs),
-      headers: {
-        "User-Agent": USER_AGENT,
-        Accept: "application/json",
-      },
+      headers: redditRequestHeaders(
+        cookie,
+        "application/json,text/plain;q=0.9,*/*;q=0.1",
+      ),
     });
+
+    if (response.status === 403) {
+      cachedAnonymousSession = undefined;
+      cookie = await primeRedditAnonymousSession(canonical.url.toString());
+
+      response = await fetch(jsonUrl, {
+        method: "GET",
+        redirect: "follow",
+        cache: "no-store",
+        signal: AbortSignal.timeout(RELIABILITY_POLICY.reddit.fetchTimeoutMs),
+        headers: redditRequestHeaders(
+          cookie,
+          "application/json,text/plain;q=0.9,*/*;q=0.1",
+        ),
+      });
+    }
   } catch (error) {
     const timeout =
       error instanceof Error &&
@@ -379,12 +642,12 @@ export async function resolveReddit(sourceUrl: string) {
   }
 
   if (response.status === 401 || response.status === 403) {
+    const blocked = await parseRedditForbidden(response);
+
     return {
       ok: false as const,
       provider: "reddit-public-json",
-      code: ERROR_CODES.REDDIT_PRIVATE,
-      message: "This Reddit post is not publicly accessible.",
-      diagnostic: "upstream-access-denied",
+      ...blocked,
     };
   }
 

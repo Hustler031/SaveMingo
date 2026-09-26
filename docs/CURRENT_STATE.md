@@ -321,3 +321,75 @@ Production/main remains untouched.
 - The result card shows sound status before download and a clear notice after a Reddit video download begins when the source is silent/unknown or Reddit reports a separate audio stream.
 - Reddit video SEO now targets the exact high-intent phrase **Reddit Video Downloader with Sound** using the qualified H1/title **Reddit Video Downloader with Sound Check**.
 - This is intentionally not a claim that the current MP4 always contains merged audio. Reddit can store audio separately; automatic muxing remains a future capability.
+
+
+## SM-012 — TikTok isolated downloader
+
+Status: **IMPLEMENTED / CI VERIFICATION IN PROGRESS / LIVE TIKTOK FIXTURES PENDING**
+
+Branch:
+`chatgpt/SM-012-tiktok`
+
+Stacked on:
+`chatgpt/SM-011-x-pinterest-reddit-seo`
+
+Implemented:
+- TikTok is a fifth isolated platform adapter behind the shared normalized resolver contract;
+- supported URL validation for public full TikTok video/photo URLs;
+- supported short-link validation for `vm.tiktok.com`, `vt.tiktok.com`, and TikTok `/t/` share links;
+- server-side short-link redirect normalization restricted to TikTok hosts;
+- public TikTok page hydration parsing through `__UNIVERSAL_DATA_FOR_REHYDRATION__` with `SIGI_STATE` fallback;
+- video resolution using the strongest available public bitrate/playback source;
+- public TikTok photo/slideshow image normalization;
+- TikTok-specific `SM-TT-xxx` errors;
+- TikTok-specific timeout/HTML-size/redirect policy;
+- TikTok CDN media allow-list and TikTok-scoped download delivery;
+- independent health endpoint at `/api/health/platforms/tiktok`;
+- V2 navigation dropdown + homepage Testing card;
+- preview SEO cluster:
+  - `/v2-preview/tiktok-downloader`
+  - `/v2-preview/tiktok-video-downloader`
+  - `/v2-preview/tiktok-photo-downloader`
+  - `/v2-preview/tiktok-slideshow-downloader`
+- TikTok validation, media allow-list, video resolver, slideshow resolver, and missing-hydration tests;
+- `START_SAVEMINGO_TIKTOK.cmd` for direct local review.
+
+SEO/product rule:
+- target "TikTok video downloader without watermark" intent in explanatory copy;
+- only state that a clean/no-watermark source is used **when TikTok exposes one**;
+- do not claim watermark removal;
+- do not add a TikTok MP3/audio page until audio delivery is actually implemented and verified.
+
+Promotion gate:
+- real public TikTok video resolve + actual download;
+- real TikTok photo/slideshow resolve + Download All;
+- one real `vm.tiktok.com` or `vt.tiktok.com` short link;
+- Instagram/X/Pinterest/Reddit regression smoke;
+- only then change TikTok from Testing to Available and promote indexable production SEO routes.
+
+Production/main remains untouched.
+
+
+
+### Reddit share-link fix
+
+- Reddit's current mobile/share URL format `reddit.com/r/<subreddit>/s/<share-id>` is now accepted by validation.
+- Share URLs are not treated as canonical post URLs; the Reddit resolver follows the Reddit redirect first and only then builds the `.json` post request from the resulting `/comments/...` URL.
+- Regression tests cover the exact `/r/aww/s/...` pattern reported during local testing.
+- Note for hosted deployment: Reddit may apply stricter unauthenticated redirect blocking to datacenter/cloud IPs than to residential/local connections, so share-link behavior must also be checked on the eventual Cloudflare runtime.
+
+
+
+### Reddit anonymous-session hardening
+
+- Reddit public `.json` access can return a generic 403 even for public posts when the request is a fresh logged-out session.
+- SaveMingo now primes an anonymous Reddit session before resolving media:
+  - warm `old.reddit.com` to obtain anonymous cookies when available;
+  - warm Reddit's `/svc/shreddit/<slug>` endpoint;
+  - retain public anonymous cookies such as `loid` / `token_v2` briefly;
+  - resolve `/r/<subreddit>/s/<share-id>` using that session;
+  - retry the canonical public `.json` request once after refreshing the anonymous session if Reddit returns 403.
+- Generic Reddit 403 responses are no longer mislabeled as private. Only an explicit Reddit `reason=private` or `reason=quarantined` response maps to `SM-RD-102`.
+- Generic anonymous API blocking maps to `SM-RD-104` with an accurate message.
+- Tests cover session cookies, share-link redirect, retry behavior, generic 403 classification, and true private-post classification.
+

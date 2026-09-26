@@ -4,6 +4,7 @@ import { detectPlatformFromUrl } from "@/lib/platforms/detect";
 import { validateInstagramUrl } from "@/lib/platforms/instagram/validation";
 import { validatePinterestUrl } from "@/lib/platforms/pinterest/validation";
 import { validateRedditUrl } from "@/lib/platforms/reddit/validation";
+import { validateTikTokUrl } from "@/lib/platforms/tiktok/validation";
 import type { PlatformValidationResult } from "@/lib/platforms/types";
 import { validateXUrl } from "@/lib/platforms/x/validation";
 
@@ -28,7 +29,7 @@ export function validateSupportedUrl(
       ok: false,
       code: ERROR_CODES.INVALID_URL,
       message:
-        "SaveMingo currently supports public Instagram, X, Pinterest, and Reddit links.",
+        "SaveMingo currently supports public Instagram, X, Pinterest, Reddit, and TikTok links.",
     };
   }
 
@@ -40,7 +41,9 @@ export function validateSupportedUrl(
           ? "X or Twitter"
           : expectedPlatform === "pinterest"
             ? "Pinterest"
-            : "Reddit";
+            : expectedPlatform === "reddit"
+              ? "Reddit"
+              : "TikTok";
 
     return {
       ok: false,
@@ -52,6 +55,7 @@ export function validateSupportedUrl(
   if (detected === "instagram") return validateInstagramUrl(value);
   if (detected === "x") return validateXUrl(value);
   if (detected === "pinterest") return validatePinterestUrl(value);
+  if (detected === "reddit") return validateRedditUrl(value);
 
-  return validateRedditUrl(value);
+  return validateTikTokUrl(value);
 }

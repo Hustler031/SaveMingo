@@ -37,10 +37,11 @@ const platforms = [
   },
   {
     title: "TikTok Downloader",
-    description: "A short-form video workflow is planned for a later platform milestone.",
+    description: "Download supported public TikTok videos, photos, and slideshow posts.",
+    href: "/v2-preview/tiktok-downloader",
     mark: "♪",
-    status: "Coming soon",
-    available: false,
+    status: "Testing",
+    available: true,
   },
   {
     title: "Facebook Downloader",
@@ -54,7 +55,7 @@ const platforms = [
 const advantages = [
   [
     "No signup",
-    "Paste a supported public Instagram, X, Pinterest, or Reddit link without creating an account.",
+    "Paste a supported public Instagram, X, Pinterest, Reddit, or TikTok link without creating an account.",
   ],
   [
     "Download first",
@@ -78,8 +79,8 @@ export function V2Preview() {
           <span className="text-[var(--v2-accent)]">find online.</span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-balance text-[15px] leading-6 text-[var(--v2-muted)] sm:text-base">
-          Instagram and X are working now. Pinterest and Reddit are in local
-          testing, with more platforms planned later.
+          Instagram and X are working now. Pinterest, Reddit, and TikTok are
+          in local testing, with more platforms planned later.
         </p>
 
         <div className="mt-6 sm:mt-7">

@@ -26,7 +26,12 @@ function looksLikeRedditPost(parsed: URL) {
   }
 
   const parts = parsed.pathname.split("/").filter(Boolean);
-  return parts.includes("comments") || parts[0] === "s";
+  const shareIndex = parts.indexOf("s");
+
+  return (
+    parts.includes("comments") ||
+    (shareIndex >= 0 && Boolean(parts[shareIndex + 1]))
+  );
 }
 
 export function validateRedditUrl(rawValue: string): RedditValidationResult {

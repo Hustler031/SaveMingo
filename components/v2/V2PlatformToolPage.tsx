@@ -15,10 +15,14 @@ export type V2PlatformPageKind =
   | "reddit-all"
   | "reddit-video"
   | "reddit-image"
-  | "reddit-gif";
+  | "reddit-gif"
+  | "tiktok-all"
+  | "tiktok-video"
+  | "tiktok-photo"
+  | "tiktok-slideshow";
 
 type Config = {
-  platform: Extract<Platform, "x" | "pinterest" | "reddit">;
+  platform: Extract<Platform, "x" | "pinterest" | "reddit" | "tiktok">;
   eyebrow: string;
   title: string;
   intro: string;
@@ -49,6 +53,13 @@ const redditRelated: Array<[string, string]> = [
   ["/v2-preview/reddit-video-downloader", "Reddit Video + Sound Check"],
   ["/v2-preview/reddit-image-downloader", "Reddit Images"],
   ["/v2-preview/reddit-gif-downloader", "Reddit GIF"],
+];
+
+const tiktokRelated: Array<[string, string]> = [
+  ["/v2-preview/tiktok-downloader", "TikTok Downloader"],
+  ["/v2-preview/tiktok-video-downloader", "TikTok Video"],
+  ["/v2-preview/tiktok-photo-downloader", "TikTok Photos"],
+  ["/v2-preview/tiktok-slideshow-downloader", "TikTok Slideshow"],
 ];
 
 const configs: Record<V2PlatformPageKind, Config> = {
@@ -380,6 +391,117 @@ const configs: Record<V2PlatformPageKind, Config> = {
       ["Does Preview open automatically?", "No. Preview remains optional."],
     ],
     related: redditRelated,
+  },
+
+  "tiktok-all": {
+    platform: "tiktok",
+    eyebrow: "TikTok Downloader",
+    title: "Download TikTok videos and photo slideshows",
+    intro:
+      "Paste a supported public TikTok video, photo post, or short share link. SaveMingo finds the available video or slideshow media without asking for a TikTok login.",
+    sectionTitle: "One TikTok link for videos and photo posts.",
+    sectionText:
+      "Full TikTok post URLs plus supported vm.tiktok.com and vt.tiktok.com share links use the same isolated downloader.",
+    supported: [
+      ["TikTok videos", "Download supported public TikTok video posts."],
+      ["Photo posts", "Save supported TikTok photo and slideshow images."],
+      ["Short links", "Resolve supported vm.tiktok.com and vt.tiktok.com share links."],
+      ["No login", "Public posts do not require your TikTok password."],
+    ],
+    steps: [
+      "Open the public TikTok post and tap Share, then Copy link.",
+      "Paste the TikTok video, photo, vm.tiktok.com, or vt.tiktok.com link into SaveMingo.",
+      "Download the available video or use Download All for a photo slideshow.",
+    ],
+    faq: [
+      ["Can SaveMingo download TikTok videos without watermark?", "When TikTok exposes a clean public playback source, SaveMingo uses that available source. SaveMingo does not claim to remove a watermark that is already baked into the file."],
+      ["Do vm.tiktok.com and vt.tiktok.com links work?", "Supported TikTok short share links are followed to their public TikTok post before media resolution."],
+      ["Can it download TikTok photo slideshows?", "Supported public photo posts can return their available images together for preview and Download All."],
+      ["Do I need a TikTok account?", "No for supported publicly accessible posts."],
+    ],
+    related: tiktokRelated,
+  },
+  "tiktok-video": {
+    platform: "tiktok",
+    eyebrow: "TikTok Video Downloader",
+    title: "TikTok Video Downloader",
+    intro:
+      "Paste a supported public TikTok video link and download the best available video source. A clean no-watermark source is used when TikTok exposes one.",
+    sectionTitle: "Save public TikTok videos without fake quality claims.",
+    sectionText:
+      "SaveMingo prefers the strongest public playback source it can resolve and keeps the actual available format instead of re-encoding the video.",
+    supported: [
+      ["MP4 video", "Download the available public TikTok video source."],
+      ["No watermark when available", "Use a clean source when TikTok publicly exposes one."],
+      ["Short-link support", "Accept supported vm.tiktok.com and vt.tiktok.com video links."],
+      ["Mobile friendly", "Use the same copy, paste, and download flow on phone or desktop."],
+    ],
+    steps: [
+      "Copy the public TikTok video link.",
+      "Paste it into the TikTok video downloader.",
+      "Press Download and save the available video source.",
+    ],
+    faq: [
+      ["How do I download a TikTok video without watermark?", "Paste the public TikTok link. When TikTok exposes a clean playback source, SaveMingo uses it. If the only available source contains a watermark, SaveMingo does not pretend otherwise."],
+      ["Does SaveMingo re-encode TikTok videos?", "No. The current downloader is designed to stream the resolved public source rather than re-encode it."],
+      ["Do TikTok short links work?", "Supported vm.tiktok.com and vt.tiktok.com links are resolved to their public destination first."],
+      ["Can I download private TikTok videos?", "No. Private or login-only posts are not supported."],
+    ],
+    related: tiktokRelated,
+  },
+  "tiktok-photo": {
+    platform: "tiktok",
+    eyebrow: "TikTok Photo Downloader",
+    title: "Download photos from TikTok posts",
+    intro:
+      "Paste a supported public TikTok photo-post link and save the available images. Multi-image posts stay together so you can preview or download all.",
+    sectionTitle: "Save TikTok photo posts without opening every slide.",
+    sectionText:
+      "SaveMingo reads the public photo-post media list and returns each available image through the same result interface.",
+    supported: [
+      ["TikTok photos", "Save supported public TikTok image posts."],
+      ["Multiple images", "Return several photos from the same supported post."],
+      ["Download all", "Use one primary action for multi-image posts."],
+      ["Optional preview", "Open Preview only when you want item-level control."],
+    ],
+    steps: [
+      "Copy the public TikTok photo-post link.",
+      "Paste the link into SaveMingo.",
+      "Download the image or use Download All when multiple photos are available.",
+    ],
+    faq: [
+      ["Can SaveMingo download all photos from a TikTok post?", "When TikTok exposes the public image list, SaveMingo returns the available images together."],
+      ["Does this work for normal TikTok videos?", "Use the TikTok Video Downloader for standard video posts; the generic TikTok page auto-detects either type."],
+      ["Does Preview open automatically?", "No. Preview remains optional."],
+    ],
+    related: tiktokRelated,
+  },
+  "tiktok-slideshow": {
+    platform: "tiktok",
+    eyebrow: "TikTok Slideshow Downloader",
+    title: "TikTok Slideshow Downloader",
+    intro:
+      "Paste a supported public TikTok slideshow or photo-post link and download the available images individually or together.",
+    sectionTitle: "Download the slides from TikTok photo posts.",
+    sectionText:
+      "TikTok photo posts can contain several images. SaveMingo keeps the slides as individual image files instead of fabricating a slideshow video.",
+    supported: [
+      ["Every available slide", "Return the public image items TikTok exposes for the post."],
+      ["Download all", "Save multiple slideshow images through one result action."],
+      ["Original image sources", "Use the available public image URLs rather than screenshots."],
+      ["No fake conversion", "Images remain images; SaveMingo does not silently turn them into a video."],
+    ],
+    steps: [
+      "Copy the public TikTok slideshow or photo-post link.",
+      "Paste the link into the slideshow downloader.",
+      "Use Download All or Preview for individual slides.",
+    ],
+    faq: [
+      ["Can I download every image from a TikTok slideshow?", "For supported public photo posts, SaveMingo returns the available image list together."],
+      ["Will the slideshow music be downloaded too?", "Not in the current photo/slideshow downloader. An audio-only TikTok feature needs a separate verified media path."],
+      ["Can I make an MP4 slideshow?", "SaveMingo does not currently render slideshow images into a new MP4."],
+    ],
+    related: tiktokRelated,
   },
 };
 

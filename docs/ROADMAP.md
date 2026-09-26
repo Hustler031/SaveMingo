@@ -38,3 +38,18 @@ Mobile/desktop, performance, security, SEO, failures and production cutover.
 - evaluate Facebook as the next platform;
 - do not begin another platform until Instagram + X regression smoke is stable.
 
+
+
+### SM-012 — TikTok
+- isolated TikTok adapter;
+- full + short TikTok URL validation;
+- video and photo/slideshow normalization;
+- TikTok-specific errors, reliability, health and media allow-list;
+- TikTok video/photo/slideshow SEO preview cluster;
+- local fixture verification before production/indexing.
+
+### After TikTok live verification
+- evaluate reliable TikTok audio-only delivery before creating an MP3 page;
+- keep no-watermark claims conditional on the source TikTok actually exposes;
+- choose the next platform only after current platform regression smoke remains stable.
+

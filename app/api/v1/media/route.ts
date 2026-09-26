@@ -69,6 +69,8 @@ function refererForPlatform(platform: Platform) {
       return "https://www.pinterest.com/";
     case "reddit":
       return "https://www.reddit.com/";
+    case "tiktok":
+      return "https://www.tiktok.com/";
   }
 }
 
@@ -115,6 +117,13 @@ function platformDeliveryConfig(platform: Platform) {
         resolverFailureCode: ERROR_CODES.REDDIT_RESOLVER_FAILED,
         upstreamChangedCode: ERROR_CODES.REDDIT_UPSTREAM_CHANGED,
         mediaUnavailableCode: ERROR_CODES.REDDIT_MEDIA_UNAVAILABLE,
+      };
+    case "tiktok":
+      return {
+        label: "TikTok",
+        resolverFailureCode: ERROR_CODES.TIKTOK_RESOLVER_FAILED,
+        upstreamChangedCode: ERROR_CODES.TIKTOK_UPSTREAM_CHANGED,
+        mediaUnavailableCode: ERROR_CODES.TIKTOK_MEDIA_UNAVAILABLE,
       };
   }
 }

@@ -220,3 +220,71 @@ Reddit sound UX:
 - also show an after-click notice for silent/separate/unknown audio states;
 - exact SEO intent is retained through **Reddit Video Downloader with Sound Check**;
 - do not change this to an unconditional "downloads with sound" promise until audio/video muxing is implemented and verified.
+
+
+## SM-012 handoff — TikTok
+
+Current branch:
+`chatgpt/SM-012-tiktok`
+
+Base:
+`chatgpt/SM-011-x-pinterest-reddit-seo`
+
+TikTok is implemented as a fully separate adapter:
+```text
+/api/v1/resolve
+   ↓
+platform detector
+   ↓
+tiktok adapter
+   ↓
+tiktok public-page resolver
+   ↓
+normalized video / photo / slideshow result
+   ↓
+shared result + media delivery UI
+```
+
+TikTok does not import Instagram, X, Pinterest, or Reddit resolver internals.
+
+Local review:
+- `START_SAVEMINGO_TIKTOK.cmd`
+- direct route: `http://localhost:3000/v2-preview/tiktok-downloader`
+
+Review fixtures:
+1. one full public TikTok video URL;
+2. one `vm.tiktok.com` or `vt.tiktok.com` video share URL;
+3. one public TikTok photo/slideshow post;
+4. actual video download;
+5. slideshow Download All + optional Preview;
+6. existing Instagram and X regression check.
+
+Known upstream risk:
+TikTok can return challenge/403 responses or change hydration JSON. Those failures must remain contained to `SM-TT-xxx` and must not affect other adapters.
+
+Do not promote TikTok to Available or indexable production pages until real fixture testing passes.
+
+
+
+### Reddit share-link fix
+
+- Reddit's current mobile/share URL format `reddit.com/r/<subreddit>/s/<share-id>` is now accepted by validation.
+- Share URLs are not treated as canonical post URLs; the Reddit resolver follows the Reddit redirect first and only then builds the `.json` post request from the resulting `/comments/...` URL.
+- Regression tests cover the exact `/r/aww/s/...` pattern reported during local testing.
+- Note for hosted deployment: Reddit may apply stricter unauthenticated redirect blocking to datacenter/cloud IPs than to residential/local connections, so share-link behavior must also be checked on the eventual Cloudflare runtime.
+
+
+
+### Reddit anonymous-session hardening
+
+- Reddit public `.json` access can return a generic 403 even for public posts when the request is a fresh logged-out session.
+- SaveMingo now primes an anonymous Reddit session before resolving media:
+  - warm `old.reddit.com` to obtain anonymous cookies when available;
+  - warm Reddit's `/svc/shreddit/<slug>` endpoint;
+  - retain public anonymous cookies such as `loid` / `token_v2` briefly;
+  - resolve `/r/<subreddit>/s/<share-id>` using that session;
+  - retry the canonical public `.json` request once after refreshing the anonymous session if Reddit returns 403.
+- Generic Reddit 403 responses are no longer mislabeled as private. Only an explicit Reddit `reason=private` or `reason=quarantined` response maps to `SM-RD-102`.
+- Generic anonymous API blocking maps to `SM-RD-104` with an accurate message.
+- Tests cover session cookies, share-link redirect, retry behavior, generic 403 classification, and true private-post classification.
+
