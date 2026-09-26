@@ -4,6 +4,7 @@ const ALLOWED_MEDIA_ROOTS: Record<Platform, readonly string[]> = {
   instagram: ["cdninstagram.com", "fbcdn.net"],
   x: ["pbs.twimg.com", "video.twimg.com"],
   pinterest: ["pinimg.com"],
+  reddit: ["i.redd.it", "v.redd.it", "preview.redd.it", "external-preview.redd.it", "redditmedia.com"],
 };
 
 function normalizedHttpsUrl(raw: string) {
@@ -58,6 +59,10 @@ export function isAllowedXMediaUrl(raw: string) {
 
 export function isAllowedPinterestMediaUrl(raw: string) {
   return mediaPlatformForUrl(raw) === "pinterest";
+}
+
+export function isAllowedRedditMediaUrl(raw: string) {
+  return mediaPlatformForUrl(raw) === "reddit";
 }
 
 export function safeMediaFilenameBase(raw: string | null) {
