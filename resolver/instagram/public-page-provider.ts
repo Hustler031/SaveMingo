@@ -11,7 +11,7 @@ import {
 
 const RELIABILITY_POLICY.instagram.maxRedirects = 3;
 const RELIABILITY_POLICY.instagram.maxHtmlBytes = 5_000_000;
-const FETCH_TIMEOUT_MS = 10_000;
+const RELIABILITY_POLICY.instagram.fetchTimeoutMs = 10_000;
 
 type ProviderDebug = {
   htmlLength: number;
