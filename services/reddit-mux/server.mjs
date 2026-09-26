@@ -65,7 +65,7 @@ async function readJson(req) {
   return JSON.parse(Buffer.concat(chunks).toString("utf8"));
 }
 
-async function fetchAllowed(url, maxBytes) {
+async function fetchAllowed(url, maxBytes, redirectCount = 0) {
   if (!isAllowedRedditMuxUrl(url)) {
     throw new Error("blocked-url");
   }
@@ -86,6 +86,7 @@ async function fetchAllowed(url, maxBytes) {
     const location = response.headers.get("location");
 
     if (!location) throw new Error("redirect-without-location");
+    if (redirectCount >= 3) throw new Error("redirect-limit");
 
     const next = new URL(location, url).toString();
 
@@ -93,7 +94,7 @@ async function fetchAllowed(url, maxBytes) {
       throw new Error("blocked-redirect");
     }
 
-    return fetchAllowed(next, maxBytes);
+    return fetchAllowed(next, maxBytes, redirectCount + 1);
   }
 
   if (!response.ok || !response.body) {
