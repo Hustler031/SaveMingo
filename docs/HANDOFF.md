@@ -273,3 +273,18 @@ Do not promote TikTok to Available or indexable production pages until real fixt
 - Regression tests cover the exact `/r/aww/s/...` pattern reported during local testing.
 - Note for hosted deployment: Reddit may apply stricter unauthenticated redirect blocking to datacenter/cloud IPs than to residential/local connections, so share-link behavior must also be checked on the eventual Cloudflare runtime.
 
+
+
+### Reddit anonymous-session hardening
+
+- Reddit public `.json` access can return a generic 403 even for public posts when the request is a fresh logged-out session.
+- SaveMingo now primes an anonymous Reddit session before resolving media:
+  - warm `old.reddit.com` to obtain anonymous cookies when available;
+  - warm Reddit's `/svc/shreddit/<slug>` endpoint;
+  - retain public anonymous cookies such as `loid` / `token_v2` briefly;
+  - resolve `/r/<subreddit>/s/<share-id>` using that session;
+  - retry the canonical public `.json` request once after refreshing the anonymous session if Reddit returns 403.
+- Generic Reddit 403 responses are no longer mislabeled as private. Only an explicit Reddit `reason=private` or `reason=quarantined` response maps to `SM-RD-102`.
+- Generic anonymous API blocking maps to `SM-RD-104` with an accurate message.
+- Tests cover session cookies, share-link redirect, retry behavior, generic 403 classification, and true private-post classification.
+
