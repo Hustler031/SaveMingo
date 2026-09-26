@@ -5,7 +5,7 @@ import type {
 } from "@/lib/downloader/types";
 
 const DEFAULT_DOC_ID = "27128499623469141";
-const FETCH_TIMEOUT_MS = 10_000;
+const RELIABILITY_POLICY.instagram.fetchTimeoutMs = 10_000;
 const WEB_APP_ID = "936619743392459";
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36";
