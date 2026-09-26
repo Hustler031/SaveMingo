@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Downloader } from "@/components/downloader/Downloader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -6,57 +7,61 @@ import { SiteHeader } from "@/components/SiteHeader";
 export const metadata: Metadata = {
   title: "Instagram Downloader",
   description:
-    "Save public Instagram Reels, videos, photos, and posts with SaveMingo's clean Instagram downloader.",
+    "Download supported public Instagram Reels, videos, photos, and carousel posts with SaveMingo's clean Instagram downloader.",
   alternates: {
     canonical: "/instagram-downloader",
   },
   openGraph: {
     title: "Instagram Downloader | SaveMingo",
     description:
-      "A clean, simple downloader for public Instagram Reels, videos, photos, and posts.",
-    url: "https://savemingo.com/instagram-downloader",
+      "A clean downloader for supported public Instagram Reels, videos, photos, and carousel posts.",
+    url: "/instagram-downloader",
   },
 };
 
 const supported = [
   {
     name: "Reels",
+    href: "/instagram-reels-downloader",
     mark: "▶",
-    text: "Recognize public Instagram Reel links and prepare them for media resolution.",
+    text: "Resolve supported public Reel links and download the available video.",
   },
   {
     name: "Videos",
+    href: "/instagram-video-downloader",
     mark: "◉",
-    text: "A focused flow for public Instagram video posts without account signup.",
+    text: "Use the same simple flow for supported public Instagram video posts.",
   },
   {
     name: "Photos",
+    href: "/instagram-photo-downloader",
     mark: "▣",
-    text: "The same simple paste flow will handle public photo posts.",
+    text: "Public photo posts use the same normalized media result model.",
   },
   {
     name: "Carousels",
+    href: "/instagram-carousel-downloader",
     mark: "▦",
-    text: "Multi-item public posts will return each available media item separately.",
+    text: "Supported multi-item posts return each available media item separately.",
   },
 ];
 
 const faq = [
   [
     "Does SaveMingo require an Instagram login?",
-    "No. V1 is designed around public Instagram links and does not ask for your Instagram password.",
+    "No. SaveMingo is designed around public Instagram links and does not ask for your Instagram password.",
   ],
   [
     "Can it download private Instagram posts?",
-    "No. SaveMingo is being built for publicly accessible links and does not bypass private-account controls.",
+    "No. SaveMingo does not bypass private-account controls.",
   ],
   [
-    "Will photos and carousel posts use a different tool?",
-    "No. The goal is one clean input. SaveMingo detects the supported Instagram link type behind the same interface.",
+    "Does SaveMingo permanently store downloads?",
+    "The current V1 media route is designed to stream resolved media rather than intentionally retain a permanent copy.",
   ],
   [
-    "Why does this preview only check my link?",
-    "Day 2 is the resolver-ready interface milestone. The real media resolver is connected in the next implementation stage.",
+    "What should I send if something fails?",
+    "Keep the SaveMingo error code and request ID shown on screen. Those two identifiers are designed to make debugging much faster.",
   ],
 ];
 
@@ -67,14 +72,15 @@ export default function InstagramDownloaderPage() {
 
       <section className="mx-auto w-full max-w-6xl px-5 pb-16 pt-10 text-center sm:px-8 sm:pb-20 sm:pt-16">
         <p className="text-xs font-black tracking-[0.16em] text-[var(--accent-strong)] uppercase">
-          Instagram · V1
+          Instagram downloader
         </p>
         <h1 className="mx-auto mt-4 max-w-4xl text-balance text-4xl font-black tracking-[-0.05em] text-neutral-950 sm:text-6xl">
-          Instagram Downloader
+          Download supported public Instagram media
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-balance text-base leading-7 text-neutral-600 sm:text-lg">
-          One clean place for public Instagram Reels, videos, photos, and
-          carousel posts. Paste the link and let SaveMingo handle the rest.
+          Paste a public Instagram Reel, video, photo, or carousel link.
+          SaveMingo validates the URL, resolves the available media, and gives
+          you a clear download result.
         </p>
 
         <div className="mt-9 sm:mt-11">
@@ -90,20 +96,21 @@ export default function InstagramDownloaderPage() {
                 One input
               </p>
               <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-neutral-950">
-                Built for the Instagram formats people actually save.
+                Four Instagram media paths, one workflow.
               </h2>
             </div>
             <p className="max-w-md text-sm leading-6 text-neutral-600">
-              The resolver will identify the exact media type after the link
-              passes this frontend validation layer.
+              SaveMingo detects the supported post type behind the same public
+              resolver API, so you do not need separate paste boxes.
             </p>
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {supported.map((item) => (
-              <article
+              <Link
                 key={item.name}
-                className="rounded-[24px] border border-neutral-200 bg-white p-6 shadow-sm"
+                href={item.href}
+                className="rounded-[24px] border border-neutral-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-neutral-300"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-sm font-black text-[var(--accent-strong)]">
                   {item.mark}
@@ -114,7 +121,7 @@ export default function InstagramDownloaderPage() {
                 <p className="mt-2 text-sm leading-6 text-neutral-600">
                   {item.text}
                 </p>
-              </article>
+              </Link>
             ))}
           </div>
         </div>
@@ -129,8 +136,9 @@ export default function InstagramDownloaderPage() {
             Copy. Paste. Save.
           </h2>
           <p className="mt-4 max-w-md text-sm leading-6 text-neutral-600">
-            SaveMingo keeps the visible workflow simple while the validation,
-            resolver, diagnostics, and error handling stay modular underneath.
+            The visible workflow stays simple while validation, resolver
+            fallbacks, rate limits, request IDs, and media delivery stay modular
+            underneath.
           </p>
         </div>
 
@@ -138,7 +146,8 @@ export default function InstagramDownloaderPage() {
           {[
             ["01", "Copy the public Instagram link"],
             ["02", "Paste it into SaveMingo"],
-            ["03", "Choose the resolved media and download"],
+            ["03", "Resolve the available media"],
+            ["04", "Download the item you want"],
           ].map(([number, text]) => (
             <div
               key={number}
@@ -164,9 +173,10 @@ export default function InstagramDownloaderPage() {
             </h2>
           </div>
           <p className="max-w-2xl text-sm leading-7 text-neutral-300">
-            SaveMingo V1 is designed for publicly accessible Instagram content.
-            It does not ask for Instagram credentials and is not designed to
-            bypass private-account access controls.
+            SaveMingo does not ask for Instagram credentials and is not designed
+            to bypass private-account access controls. Upstream availability can
+            change, so failed requests return diagnostic error codes and request
+            IDs instead of pretending every post is downloadable.
           </p>
         </div>
       </section>
@@ -185,9 +195,9 @@ export default function InstagramDownloaderPage() {
           {faq.map(([question, answer]) => (
             <details
               key={question}
-              className="group rounded-[22px] border border-neutral-200 bg-white/80 px-5 py-4 shadow-sm"
+              className="rounded-[22px] border border-neutral-200 bg-white/80 px-5 py-4 shadow-sm"
             >
-              <summary className="cursor-pointer list-none pr-8 text-sm font-black text-neutral-950 marker:hidden">
+              <summary className="cursor-pointer list-none pr-8 text-sm font-black text-neutral-950">
                 {question}
               </summary>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-neutral-600">

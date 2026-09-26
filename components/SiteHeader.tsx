@@ -22,9 +22,18 @@ export function SiteHeader() {
         >
           Instagram
         </Link>
-        <span className="hidden rounded-full bg-neutral-950 px-3 py-2 text-xs font-extrabold text-white sm:inline-flex">
-          V1
-        </span>
+        <Link
+          href="/instagram-reels-downloader"
+          className="hidden rounded-full px-3 py-2 text-xs font-extrabold text-neutral-700 transition hover:bg-neutral-100 sm:inline-flex sm:px-4 sm:text-sm"
+        >
+          Reels
+        </Link>
+        <Link
+          href="/how-to-download-instagram-reels"
+          className="hidden rounded-full px-3 py-2 text-xs font-extrabold text-neutral-700 transition hover:bg-neutral-100 md:inline-flex md:px-4 md:text-sm"
+        >
+          Guide
+        </Link>
       </nav>
     </header>
   );

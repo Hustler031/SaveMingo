@@ -1,56 +1,41 @@
 # Handoff
 
 ## Current milestone
-**SM-005C — Cloudflare migration trial: LIVE VERIFIED**
+**SM-006 — SEO + analytics**
 
 ## Branch
-`chatgpt/SM-005C-cloudflare`
+`chatgpt/SM-006-seo-analytics`
 
-## Worker
-`https://savemingo.ashabup0.workers.dev`
+## Starting point
+Cloudflare Worker is live and has passed runtime smoke tests for:
+- homepage
+- health
+- public Reel
+- public carousel
+- partial media streaming
 
-## Completed
-- SM-005 reliability hardening included
-- official vinext Cloudflare migration
-- `vite.config.ts` and `wrangler.jsonc`
-- locked package tree
-- Cloudflare-compatible Windows local helpers
-- CI validates Next.js + Cloudflare builds
-- Cloudflare GitHub integration connected
-- Worker deployed successfully
-- reusable live runtime smoke workflow added
+The custom domain is not attached yet.
 
-## Live runtime verification
-GitHub Actions verified:
-- homepage `200`
-- health API healthy
-- resolver health healthy
-- invalid URL contract `SM-URL-001`
-- public Reel → 1 video
-- public carousel → 2 items
-- media delivery → `206 video/mp4`
+## SM-006 work
+- Instagram SEO landing-page cluster
+- unique metadata and canonicals
+- sitemap.xml and robots.txt
+- how-to content page
+- About / Privacy / Terms / Copyright
+- 404 page
+- internal linking
+- GA4-ready optional analytics loader
+- Search Console verification env hook
+- product funnel event instrumentation
 
-Cloudflare egress therefore works for the current Instagram resolver and media-delivery architecture.
+## External account dependency
+GA4 and Search Console remain unconfigured until the user connects those services. The site must remain fully functional without analytics IDs.
 
-## Immediate next step
-Merge PR #7 once final branch-head checks are green.
+## Important privacy rule
+Do not send the pasted Instagram URL, signed CDN URL, request ID, or other potentially sensitive values as analytics event parameters.
 
-After merge, the Cloudflare dashboard production branch must be changed from:
-`chatgpt/SM-005C-cloudflare`
-
-to:
-`main`
-
-Then verify the main deployment with the same runtime smoke.
-
-## Domain
-Do not attach/move `savemingo.com` yet.
-
-## Rollback
-Keep Vercel project `save-mingo` intact during early Cloudflare production.
-
-## Known audit item
-Independent live single-photo fixture remains pending; photo normalization is unit-verified.
-
-## Next milestone
-**SM-006 — SEO + analytics**
+## Next after SM-006
+- verify generated SEO routes in Cloudflare preview
+- connect GA4
+- connect Search Console
+- custom-domain launch audit

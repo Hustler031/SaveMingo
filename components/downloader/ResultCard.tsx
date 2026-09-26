@@ -1,3 +1,6 @@
+"use client";
+
+import { trackEvent } from "@/lib/analytics/events";
 import type { ResolveSuccess } from "@/lib/downloader/types";
 
 type ResultCardProps = {
@@ -32,8 +35,7 @@ export function ResultCard({ result }: ResultCardProps) {
             Media found
           </p>
           <h2 className="mt-1 text-xl font-black tracking-[-0.03em] text-neutral-950">
-            {result.media.length}{" "}
-            {result.media.length === 1 ? "item" : "items"} ready
+            {result.media.length} {result.media.length === 1 ? "item" : "items"} ready
           </h2>
         </div>
         <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-bold capitalize text-neutral-600">
@@ -66,6 +68,12 @@ export function ResultCard({ result }: ResultCardProps) {
 
               <a
                 href={downloadHref(item.url, result.contentType, index)}
+                onClick={() =>
+                  trackEvent("download_clicked", {
+                    content_type: result.contentType,
+                    media_count: result.media.length,
+                  })
+                }
                 className="shrink-0 rounded-xl bg-neutral-950 px-4 py-2.5 text-xs font-black text-white transition hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2"
               >
                 Download
