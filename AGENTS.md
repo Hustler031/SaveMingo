@@ -60,3 +60,16 @@ This is a hard engineering rule for every current and future downloader platform
 - Do not modify an existing working adapter merely to make a new platform work, except for backward-compatible shared-contract changes covered by regression tests.
 - Before merging a new platform, run its tests plus regression coverage for every existing live platform.
 - A new platform must remain removable/disableable without requiring a rewrite of the UI or another platform adapter.
+
+
+## Heavy media processing isolation
+
+Heavy media processing must not run inside the shared SaveMingo resolver or Cloudflare Worker.
+
+- FFmpeg, transcoding, muxing, archive creation, or other CPU/memory-heavy work belongs in an isolated service.
+- The shared SaveMingo app may validate, authorize, proxy, stream, and observe that service, but must remain functional when the heavy-processing service is unavailable.
+- Platform adapters must expose normalized capability metadata rather than importing processing-service internals.
+- A Reddit mux outage must degrade only Reddit's merged-with-sound feature; video-only Reddit downloads and all other platforms must remain available.
+- Processing services must validate upstream hosts independently, enforce size/time limits, use temporary storage only, and delete temporary media after each request.
+- Production processing services require authentication between SaveMingo and the service. Never commit production service tokens.
+

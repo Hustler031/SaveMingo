@@ -30,6 +30,10 @@ export const RELIABILITY_POLICY = {
     maxJsonBytes: 3_000_000,
     maxRedirects: 4,
   },
+  redditMux: {
+    proxyTimeoutMs: 75_000,
+    maxBodyBytes: 8_192,
+  },
   tiktok: {
     fetchTimeoutMs: 12_000,
     maxHtmlBytes: 6_000_000,

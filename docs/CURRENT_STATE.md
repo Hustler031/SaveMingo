@@ -393,3 +393,38 @@ Production/main remains untouched.
 - Generic anonymous API blocking maps to `SM-RD-104` with an accurate message.
 - Tests cover session cookies, share-link redirect, retry behavior, generic 403 classification, and true private-post classification.
 
+
+
+## SM-013 — Reddit audio/video muxing
+
+Status: **IMPLEMENTED / CI VERIFIED / LOCAL REAL-FIXTURE VERIFICATION PENDING**
+
+Branch:
+`chatgpt/SM-013-reddit-audio-mux`
+
+Base:
+`chatgpt/SM-012-tiktok`
+
+Implemented:
+- generic optional media merge descriptor;
+- Reddit resolver now exposes DASH manifest metadata when Reddit reports separate audio;
+- Reddit-specific mux errors:
+  - `SM-RD-106` merge failed;
+  - `SM-RD-107` merge service unavailable;
+- isolated Node/FFmpeg service under `services/reddit-mux/`;
+- DASH audio representation selection;
+- v.redd.it-only service-side URL allow-list;
+- input size limits, fetch timeout, FFmpeg timeout, redirect limit, temp-file cleanup;
+- authenticated SaveMingo proxy route at `POST /api/v1/reddit/mux`;
+- mux health endpoint at `/api/health/reddit-mux`;
+- result card primary action becomes **Download video with sound** when merge metadata is available;
+- **Download video only** remains available as fallback;
+- merge progress and safe failure messaging;
+- local launcher `START_SAVEMINGO_REDDIT_SOUND.cmd`:
+  - mux service: `http://localhost:8788`;
+  - mux-enabled SaveMingo: `http://localhost:3002`;
+  - Reddit video page opens automatically.
+
+Production mux hosting is not configured yet.
+Production/main remains untouched.
+

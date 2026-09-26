@@ -51,6 +51,11 @@ export type MediaContentType =
 
 export type AudioStatus = "included" | "separate" | "none" | "unknown";
 
+export type MediaMergeDescriptor = {
+  strategy: "dash-audio";
+  manifestUrl: string;
+};
+
 export type MediaAsset = {
   id: string;
   type: "video" | "image";
@@ -60,6 +65,7 @@ export type MediaAsset = {
   width?: number;
   height?: number;
   audioStatus?: AudioStatus;
+  merge?: MediaMergeDescriptor;
 };
 
 export type ResolveSuccess = {
