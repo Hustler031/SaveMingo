@@ -100,6 +100,7 @@ export function V2ResultCard({ result }: Props) {
 
   function trackSingleDownload() {
     trackEvent("download_clicked", {
+      platform: result.platform,
       content_type: result.contentType,
       media_count: result.media.length,
     });
@@ -127,6 +128,7 @@ export function V2ResultCard({ result }: Props) {
     if (!canMuxReddit || !selected.merge) return;
 
     trackEvent("download_clicked", {
+      platform: result.platform,
       content_type: result.contentType,
       media_count: result.media.length,
     });
@@ -211,6 +213,7 @@ export function V2ResultCard({ result }: Props) {
 
   function downloadAll() {
     trackEvent("download_clicked", {
+      platform: result.platform,
       content_type: result.contentType,
       media_count: result.media.length,
     });
