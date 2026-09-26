@@ -843,3 +843,26 @@ and a capable future agent should be able to:
 6. fix problems with minimal owner intervention.
 
 That is the standard this project should maintain.
+
+
+### Permanent platform-isolation rule
+
+New downloader platforms are added one at a time as independent adapters.
+
+The invariant is:
+
+> A breakage in one platform must not break another platform.
+
+Therefore every new platform must have:
+
+- its own validation module;
+- its own adapter;
+- its own resolver/parser;
+- its own error namespace;
+- its own reliability policy and health status;
+- platform-specific tests;
+- regression tests proving existing live platforms still work.
+
+The shared frontend should consume normalized media results rather than platform extraction internals. The shared `/api/v1/resolve` endpoint detects the platform and routes to the matching adapter.
+
+A new platform must not import or mutate another platform's resolver in order to work. Shared infrastructure changes must be backward-compatible and covered by regression tests.
