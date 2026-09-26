@@ -44,3 +44,19 @@ Every user-visible operational failure should eventually expose:
 - a safe human-readable message.
 
 Logs must not contain secrets, full authentication material, or signed media URLs.
+
+
+## Platform isolation contract
+
+This is a hard engineering rule for every current and future downloader platform.
+
+- Every supported platform must be implemented as an isolated adapter behind the normalized SaveMingo resolver contract.
+- A platform-specific resolver, parser, dependency, timeout, upstream change, or failure must not break or alter unrelated platform adapters.
+- Platform adapters must not import another platform's resolver or parser.
+- Platform-specific validation belongs with that platform; shared detection may only route to the correct validator/adapter.
+- Each platform must have its own stable error namespace, health status, timeout/reliability policy, and regression tests.
+- Shared media delivery may be reused, but CDN allow-lists must remain explicitly scoped by platform and redirects must not cross platform allow-lists.
+- New platforms must preserve the public `POST /api/v1/resolve` normalized contract unless a versioned API change is intentionally approved.
+- Do not modify an existing working adapter merely to make a new platform work, except for backward-compatible shared-contract changes covered by regression tests.
+- Before merging a new platform, run its tests plus regression coverage for every existing live platform.
+- A new platform must remain removable/disableable without requiring a rewrite of the UI or another platform adapter.
