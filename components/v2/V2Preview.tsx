@@ -27,10 +27,11 @@ const platforms = [
   },
   {
     title: "X / Twitter Downloader",
-    description: "Public video and media-post downloads are on the roadmap.",
+    description: "Download supported public X videos, GIFs, photos, and multi-media posts.",
+    href: "/v2-preview/x-downloader",
     mark: "X",
-    status: "Coming soon",
-    available: false,
+    status: "Available",
+    available: true,
   },
   {
     title: "Reddit Downloader",
@@ -51,7 +52,7 @@ const platforms = [
 const advantages = [
   [
     "No signup",
-    "Paste a supported public Instagram link and download without creating an account.",
+    "Paste a supported public Instagram or X link and download without creating an account.",
   ],
   [
     "Download first",
@@ -75,8 +76,8 @@ export function V2Preview() {
           <span className="text-[var(--v2-accent)]">find online.</span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-balance text-[15px] leading-6 text-[var(--v2-muted)] sm:text-base">
-          Instagram downloads are available now. More platforms will join
-          SaveMingo over time.
+          Instagram and X downloads are available now. More platforms will
+          join SaveMingo over time.
         </p>
 
         <div className="mt-6 sm:mt-7">
@@ -102,8 +103,8 @@ export function V2Preview() {
               </h2>
             </div>
             <p className="max-w-md text-sm leading-6 text-[var(--v2-muted)]">
-              Instagram is live first. Other platform downloaders will appear
-              here as they become available.
+              Instagram and X are available now. Other platform downloaders
+              will appear here as they become ready.
             </p>
           </div>
 
@@ -179,7 +180,7 @@ export function V2Preview() {
 
           <div className="mt-7 grid gap-3 md:grid-cols-3">
             {[
-              ["01", "Copy", "Copy a supported public Instagram link."],
+              ["01", "Copy", "Copy a supported public Instagram or X link."],
               ["02", "Paste", "Paste the link into SaveMingo."],
               ["03", "Download", "Download immediately or open Preview first."],
             ].map(([number, title, text]) => (
