@@ -1,45 +1,68 @@
-const ALLOWED_MEDIA_ROOTS = ["cdninstagram.com", "fbcdn.net"] as const;
+import type { Platform } from "@/lib/downloader/types";
 
-export function isAllowedInstagramMediaUrl(raw: string) {
+const ALLOWED_MEDIA_ROOTS: Record<Platform, readonly string[]> = {
+  instagram: ["cdninstagram.com", "fbcdn.net"],
+  x: ["pbs.twimg.com", "video.twimg.com"],
+};
+
+function normalizedHttpsUrl(raw: string) {
   let url: URL;
 
   try {
     url = new URL(raw);
   } catch {
-    return false;
+    return null;
   }
 
-  if (url.protocol !== "https:") {
-    return false;
-  }
+  if (url.protocol !== "https:") return null;
+  if (url.username || url.password) return null;
+  if (url.port && url.port !== "443") return null;
 
-  if (url.username || url.password) {
-    return false;
-  }
+  return url;
+}
 
-  if (url.port && url.port !== "443") {
-    return false;
-  }
+function hostMatchesRoot(hostname: string, root: string) {
+  return hostname === root || hostname.endsWith("." + root);
+}
+
+export function mediaPlatformForUrl(raw: string): Platform | null {
+  const url = normalizedHttpsUrl(raw);
+
+  if (!url) return null;
 
   const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
 
-  return ALLOWED_MEDIA_ROOTS.some(
-    (root) => hostname === root || hostname.endsWith("." + root),
-  );
+  for (const [platform, roots] of Object.entries(
+    ALLOWED_MEDIA_ROOTS,
+  ) as Array<[Platform, readonly string[]]>) {
+    if (roots.some((root) => hostMatchesRoot(hostname, root))) {
+      return platform;
+    }
+  }
+
+  return null;
+}
+
+export function isAllowedMediaUrl(raw: string) {
+  return mediaPlatformForUrl(raw) !== null;
+}
+
+export function isAllowedInstagramMediaUrl(raw: string) {
+  return mediaPlatformForUrl(raw) === "instagram";
+}
+
+export function isAllowedXMediaUrl(raw: string) {
+  return mediaPlatformForUrl(raw) === "x";
 }
 
 export function safeMediaFilenameBase(raw: string | null) {
   const fallback = "savemingo-media";
 
-  if (!raw) {
-    return fallback;
-  }
+  if (!raw) return fallback;
 
   const value = raw
     .normalize("NFKD")
     .replace(/[^a-zA-Z0-9._-]+/g, "-")
-    // Remove traversal/hidden-file style punctuation from the beginning after
-    // unsafe characters have already been normalized into separators.
     .replace(/^[._-]+/, "")
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
@@ -61,6 +84,8 @@ export function extensionForContentType(contentType: string | null) {
       return "webp";
     case "image/avif":
       return "avif";
+    case "image/gif":
+      return "gif";
     default:
       return "bin";
   }
