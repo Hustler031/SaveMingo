@@ -24,7 +24,7 @@ const platforms = [
     description: "Download supported public Pinterest video and image pins from pin links.",
     href: "/v2-preview/pinterest-downloader",
     mark: "P",
-    status: "Available",
+    status: "Testing",
     available: true,
   },
   {
@@ -32,7 +32,7 @@ const platforms = [
     description: "Download supported Reddit-hosted videos, images, GIFs, and galleries.",
     href: "/v2-preview/reddit-downloader",
     mark: "r/",
-    status: "Available",
+    status: "Testing",
     available: true,
   },
   {
@@ -78,8 +78,8 @@ export function V2Preview() {
           <span className="text-[var(--v2-accent)]">find online.</span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-balance text-[15px] leading-6 text-[var(--v2-muted)] sm:text-base">
-          Instagram, X, Pinterest, and Reddit are available in this preview.
-          More platforms can join the same SaveMingo workflow later.
+          Instagram and X are working now. Pinterest and Reddit are in local
+          testing, with more platforms planned later.
         </p>
 
         <div className="mt-6 sm:mt-7">
@@ -105,8 +105,8 @@ export function V2Preview() {
               </h2>
             </div>
             <p className="max-w-md text-sm leading-6 text-[var(--v2-muted)]">
-              Four platform modules are available in this preview. Each one
-              stays isolated so an upstream break does not take down the others.
+              Each platform gets its own focused downloader while the homepage
+              keeps one simple paste-and-download workflow.
             </p>
           </div>
 
