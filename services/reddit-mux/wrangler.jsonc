@@ -1,0 +1,35 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "savemingo-reddit-mux",
+  "main": "./worker.mjs",
+  "compatibility_date": "2026-09-26",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": false,
+  "containers": [
+    {
+      "class_name": "RedditMuxContainer",
+      "image": "./Dockerfile",
+      "max_instances": 2,
+      "instance_type": "basic",
+      "rollout_active_grace_period": 60
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "REDDIT_MUX_CONTAINER",
+        "class_name": "RedditMuxContainer"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "RedditMuxContainer"
+      ]
+    }
+  ]
+}
