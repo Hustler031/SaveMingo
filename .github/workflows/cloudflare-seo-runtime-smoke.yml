@@ -1,0 +1,42 @@
+name: Cloudflare SEO Runtime Smoke
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "scripts/cloudflare-seo-runtime-smoke.mjs"
+      - "vite.config.ts"
+      - "wrangler.jsonc"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  seo-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Build Cloudflare Worker
+        run: npm run build:vinext
+
+      - name: Smoke SEO routes in Wrangler runtime
+        run: node scripts/cloudflare-seo-runtime-smoke.mjs
